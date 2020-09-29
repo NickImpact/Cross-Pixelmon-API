@@ -55,6 +55,7 @@ public interface DataManager<P extends ImpactDevPokemon<?>> {
         if(element instanceof JObject) {
             JObject writer = (JObject) element;
             Preconditions.checkNotNull(key);
+            Preconditions.checkNotNull(value, "Value for key '" + key + "' is null...");
 
             if (value instanceof String) {
                 writer.add(key, (String) value);

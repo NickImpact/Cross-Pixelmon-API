@@ -28,6 +28,10 @@ apply plugin: 'maven-publish-auth'
 group 'net.impactdev'
 version '1.0.0-SNAPSHOT'
 
+subprojects {
+    group 'net.impactdev.pixelmonbridge'
+}
+
 allprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
@@ -35,6 +39,8 @@ allprojects {
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
+
+    version '1.0.0-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
@@ -92,10 +98,19 @@ publishing {
 
     publications {
         api(MavenPublication) {
+            def project = project(":")
             from project.components.java
             groupId project.group
-            artifactId "pixelmon-bridge"
+            artifactId "pixelmonbridge"
+            version project.version
+        }
+        reforged(MavenPublication) { publication ->
+            def project = project(":Reforged")
+            from project.components.java
+            groupId project.group
+            artifactId "reforged"
             version project.version
         }
     }
 }
+

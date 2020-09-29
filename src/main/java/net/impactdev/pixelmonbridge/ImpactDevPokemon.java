@@ -17,6 +17,4 @@ public interface ImpactDevPokemon<P> {
 
     Map<SpecKey<?>, Object> getAllDetails();
 
-    void from(P pokemon);
-
 }

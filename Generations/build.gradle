@@ -2,13 +2,13 @@ plugins {
     id 'java'
 }
 
-group 'net.impactdev'
-version '1.0.0-SNAPSHOT'
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    compile project(":")
+    compile fileTree(dir: 'libs', include: '*.jar')
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+

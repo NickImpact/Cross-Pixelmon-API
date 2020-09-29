@@ -1,6 +1,5 @@
 package net.impactdev.pixelmonbridge.details.components;
 
-import com.google.gson.JsonElement;
 import net.impactdev.pixelmonbridge.data.Writable;
 import net.impactdev.pixelmonbridge.data.factory.JArray;
 import net.impactdev.pixelmonbridge.data.factory.JObject;

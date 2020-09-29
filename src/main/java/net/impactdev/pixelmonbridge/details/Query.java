@@ -27,6 +27,7 @@ package net.impactdev.pixelmonbridge.details;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a query that will ultimately create the path to json represented data.
@@ -51,6 +52,14 @@ public final class Query {
         return new Query(parts);
     }
 
+    public String getHead() {
+        return this.parts.get(0);
+    }
+
+    public String getTail() {
+        return this.parts.get(this.parts.size() - 1);
+    }
+
     public List<String> getParts() {
         return this.parts;
     }
@@ -68,4 +77,16 @@ public final class Query {
         return new Query(builder.build());
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Query query = (Query) o;
+        return Objects.equals(parts, query.parts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(parts);
+    }
 }
