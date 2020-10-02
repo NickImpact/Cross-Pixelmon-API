@@ -15,8 +15,21 @@ import java.util.Map;
 
 public interface DataManager<P extends ImpactDevPokemon<?>> {
 
+    /**
+     * Serializes a Pokemon to representable JSON. When the processs has completed,
+     * implementers of this call are expected to clear the contents of {@link #PARENTS}.
+     *
+     * @param pokemon The pokemon we are serializing
+     * @return A JObject representing the JSON data of the pokemon
+     */
     JObject serialize(P pokemon);
 
+    /**
+     * Deserializes a pokemon from the incoming JSON data.
+     *
+     * @param json The raw JSON data specifying details of a pokemon
+     * @return The deserialized pokemon
+     */
     P deserialize(JsonObject json);
 
     Map<String, JObject> PARENTS = Maps.newHashMap();
