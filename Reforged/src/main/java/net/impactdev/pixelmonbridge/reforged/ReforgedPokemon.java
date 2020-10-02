@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.pixelmonmod.pixelmon.Pixelmon;
-import com.pixelmonmod.pixelmon.api.pokemon.EnumInitializeCategory;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
@@ -62,7 +61,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
     @Override
     public Pokemon getOrCreate() {
         EnumSpecies species = this.get(SpecKeys.SPECIES).flatMap(EnumSpecies::getFromName).orElseThrow(() -> new RuntimeException("Species is not yet populated..."));
-        return this.pokemon == null ? this.pokemon = writeAll(Pixelmon.pokemonFactory.create(species)).initialize() : this.pokemon;
+        return this.pokemon == null ? this.pokemon = writeAll(Pixelmon.pokemonFactory.create(species)) : this.pokemon;
     }
 
     @Override
