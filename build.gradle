@@ -111,6 +111,13 @@ publishing {
             artifactId "reforged"
             version project.version
         }
+        generations(MavenPublication) { publication ->
+            def project = project(":Generations")
+            from project.components.java
+            groupId project.group
+            artifactId "generations"
+            version project.version
+        }
     }
 }
 

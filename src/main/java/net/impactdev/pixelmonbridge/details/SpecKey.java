@@ -15,10 +15,13 @@ public final class SpecKey<T> {
     private final Query query;
     private final TypeToken<T> type;
 
+    private final int priority;
+
     public SpecKey(Builder<T> builder) {
         this.name = builder.name;
         this.query = builder.query;
         this.type = new TypeToken<T>(){};
+        this.priority = builder.priority;
     }
 
     public String getName() {
@@ -33,6 +36,10 @@ public final class SpecKey<T> {
         return this.query;
     }
 
+    public int getPriority() {
+        return this.priority;
+    }
+
     static <V> Builder<V> builder() {
         return new Builder<>();
     }
@@ -41,6 +48,7 @@ public final class SpecKey<T> {
 
         private String name;
         private Query query;
+        private int priority;
 
         public <B> Builder<B> type(TypeToken<B> type) {
             return new Builder<>();
@@ -53,6 +61,11 @@ public final class SpecKey<T> {
 
         public Builder<T> query(Query query) {
             this.query = query;
+            return this;
+        }
+
+        public Builder<T> priority(int priority) {
+            this.priority = priority;
             return this;
         }
 

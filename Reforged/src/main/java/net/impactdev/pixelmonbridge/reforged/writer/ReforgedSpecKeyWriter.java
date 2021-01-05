@@ -3,6 +3,7 @@ package net.impactdev.pixelmonbridge.reforged.writer;
 import com.google.common.collect.Maps;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
@@ -25,6 +26,7 @@ import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.minecraft.nbt.NBTTagCompound;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
-public class SpecKeyWriter {
+public class ReforgedSpecKeyWriter {
 
     private static Map<SpecKey<?>, BiConsumer<Pokemon, Object>> writers = Maps.newHashMap();
 
@@ -114,6 +116,7 @@ public class SpecKeyWriter {
         });
         writers.put(SpecKeys.MOVESET, (p, v) -> {
             Moves moves = (Moves) v;
+            p.getMoveset().clear();
             for(Moves.Move move : moves.getMoves()) {
                 if (move == null) {
                     continue;
@@ -198,15 +201,62 @@ public class SpecKeyWriter {
         writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().ivs.specialAttack = (int) v);
         writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().ivs.specialDefence = (int) v);
         writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().ivs.speed = (int) v);
+
+        writers.put(SpecKeys.DYNAMAX_LEVEL, (p, v) -> p.setDynamaxLevel((int) v));
+
+        writers.put(SpecKeys.GENERATIONS_DATA, (p, v) -> {
+            // If this key is present, it indicates that we managed to read in Generations Data
+            // that we cannot accept. As such, we should write this data out to the NBT
+            // of the recipient of the data
+
+            NBTWrapper wrapper = (NBTWrapper) v;
+            NBTTagCompound parent = new NBTTagCompound();
+            p.writeToNBT(parent);
+
+            parent.setTag("generations", wrapper.getNBT());
+            p.readFromNBT(parent);
+        });
+        writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
+            NBTWrapper wrapper = (NBTWrapper) v;
+
+            wrapper.get(SpecKeys.POKERUS).ifPresent(data -> {
+                p.setPokerus(new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[data.getType()]));
+                p.getPokerus().announced = data.isAnnounced();
+                p.getPokerus().secondsSinceInfection = data.getSecondsSinceInfection();
+            });
+            wrapper.get(SpecKeys.MINIOR_COLOR).ifPresent(data -> {
+                MiniorStats stats = new MiniorStats();
+                stats.color = data;
+                apply(p, stats);
+            });
+            wrapper.get(SpecKeys.MAREEP_WOOL_GROWTH).ifPresent(data -> {
+                ShearableStats stats = new ShearableStats();
+                stats.growthStage = data;
+                apply(p, stats);
+            });
+            wrapper.get(SpecKeys.MELTAN_ORES_SMELTED).ifPresent(data -> {
+                MeltanStats stats = new MeltanStats();
+                stats.oresSmelted = data;
+                apply(p, stats);
+            });
+        });
     }
 
-    public static boolean write(SpecKey<?> key, Pokemon target, Object value) {
+    public static void write(SpecKey<?> key, Pokemon target, Object value) {
         if(writers.containsKey(key)) {
             writers.get(key).accept(target, value);
-            return true;
         }
+    }
 
-        return false;
+    private static void apply(Pokemon pokemon, ExtraStats stats) {
+        try {
+            Field field = Pokemon.class.getDeclaredField("extraStats");
+            field.setAccessible(true);
+            field.set(pokemon, stats);
+            pokemon.getExtraStats().specialPrep(pokemon);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
 }

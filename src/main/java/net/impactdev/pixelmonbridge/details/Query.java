@@ -26,15 +26,20 @@ package net.impactdev.pixelmonbridge.details;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.StringJoiner;
 
 /**
  * Represents a query that will ultimately create the path to json represented data.
  *
  * This is based on the Sponge DataQuery object.
  */
-public final class Query {
+public final class Query implements Iterable<Query> {
 
     private static final Query EMPTY = new Query();
 
@@ -64,6 +69,10 @@ public final class Query {
         return this.parts;
     }
 
+    public int getSize() {
+        return this.parts.size();
+    }
+
     public Query pop() {
         if(this.parts.size() <= 1) {
             return EMPTY;
@@ -78,6 +87,15 @@ public final class Query {
     }
 
     @Override
+    public String toString() {
+        StringJoiner joiner = new StringJoiner(".");
+        for(String s : this.parts) {
+            joiner.add(s);
+        }
+        return joiner.toString();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -88,5 +106,32 @@ public final class Query {
     @Override
     public int hashCode() {
         return Objects.hash(parts);
+    }
+
+    @Override
+    public Iterator<Query> iterator() {
+        return new QueryIterator(this);
+    }
+
+    public static class QueryIterator implements Iterator<Query> {
+
+        public Query query;
+
+        public QueryIterator(Query query) {
+            this.query = query;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.query.getSize() > 0;
+        }
+
+        @Override
+        public Query next() {
+            Query result = this.query;
+            this.query = this.query.pop();
+            return result;
+        }
+
     }
 }

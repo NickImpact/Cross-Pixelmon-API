@@ -1,4 +1,4 @@
-package net.impactdev.pixelmonbridge.reforged;
+package net.impactdev.pixelmonbridge.generations;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,7 +33,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
+public class GenerationsDataManager implements DataManager<GenerationsPokemon> {
 
     private static Map<SpecKey<?>, Reader<?>> customReaders = Maps.newHashMap();
     static {
@@ -41,10 +41,10 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
         customReaders.put(SpecKeys.SHINY, JsonElement::getAsBoolean);
         customReaders.put(SpecKeys.FORM, JsonElement::getAsInt);
         customReaders.put(SpecKeys.LEVEL, data -> new Level(
-                 read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("level"), JsonElement::getAsInt),
-                 read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("experience"), JsonElement::getAsInt),
-                 read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("does-level"), JsonElement::getAsBoolean)
-         ));
+                read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("level"), JsonElement::getAsInt),
+                read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("experience"), JsonElement::getAsInt),
+                read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("does-level"), JsonElement::getAsBoolean)
+        ));
         customReaders.put(SpecKeys.GENDER, JsonElement::getAsInt);
         customReaders.put(SpecKeys.NATURE, data -> new Nature(
                 read(SpecKeys.NATURE, () -> data.getAsJsonObject().get("actual"), JsonElement::getAsString),
@@ -67,14 +67,6 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
                 read(SpecKeys.EGG_INFO, () -> data.getAsJsonObject().get("cycles"), JsonElement::getAsInt),
                 read(SpecKeys.EGG_INFO, () -> data.getAsJsonObject().get("steps"), JsonElement::getAsInt)
         ));
-        customReaders.put(SpecKeys.POKERUS, data -> {
-            JsonObject json = data.getAsJsonObject();
-            return new Pokerus(
-                    read(SpecKeys.POKERUS, () -> json.get("type"), JsonElement::getAsInt),
-                    read(SpecKeys.POKERUS, () -> json.get("secondsSinceInfection"), JsonElement::getAsInt),
-                    read(SpecKeys.POKERUS, () -> json.get("announced"), JsonElement::getAsBoolean)
-            );
-        });
         customReaders.put(SpecKeys.MOVESET, data -> {
             Moves moves = new Moves();
             JsonArray array = data.getAsJsonArray();
@@ -110,7 +102,8 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
         });
         customReaders.put(SpecKeys.HELD_ITEM, data -> {
             try {
-                ItemStack item = new ItemStack(JsonToNBT.getTagFromJson(read(SpecKeys.HELD_ITEM, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString)));
+                ItemStack item = ItemStack.EMPTY;
+                item.deserializeNBT(JsonToNBT.getTagFromJson(read(SpecKeys.HELD_ITEM, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString)));
                 return new ItemStackWrapper(item);
             } catch (NBTException e) {
                 throw new RuntimeException(e);
@@ -135,10 +128,9 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
         customReaders.put(SpecKeys.IV_SPATK, JsonElement::getAsInt);
         customReaders.put(SpecKeys.IV_SPDEF, JsonElement::getAsInt);
         customReaders.put(SpecKeys.IV_SPEED, JsonElement::getAsInt);
-        customReaders.put(SpecKeys.DYNAMAX_LEVEL, JsonElement::getAsInt);
-        customReaders.put(SpecKeys.REFORGED_DATA, json -> {
+        customReaders.put(SpecKeys.GENERATIONS_DATA, json -> {
             try {
-                return new NBTWrapper(JsonToNBT.getTagFromJson(read(SpecKeys.EXTRA_DATA, () -> json.getAsJsonObject().get("data"), JsonElement::getAsString)));
+                return new NBTWrapper(JsonToNBT.getTagFromJson(read(SpecKeys.GENERATIONS_DATA, () -> json.getAsJsonObject().get("data"), JsonElement::getAsString)));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -146,7 +138,7 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
     }
 
     @Override
-    public JObject serialize(ReforgedPokemon pokemon) {
+    public JObject serialize(GenerationsPokemon pokemon) {
         JObject out = new JObject();
 
         for(Map.Entry<SpecKey<?>, Object> data : pokemon.getAllDetails().entrySet()) {
@@ -162,8 +154,8 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
     }
 
     @Override
-    public ReforgedPokemon deserialize(JsonObject json) {
-        ReforgedPokemon result = new ReforgedPokemon();
+    public GenerationsPokemon deserialize(JsonObject json) {
+        GenerationsPokemon result = new GenerationsPokemon();
         if(!json.has("species")) {
             throw new IllegalStateException("JSON data is lacking pokemon species");
         }
@@ -183,7 +175,7 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
             }
 
             NBTWrapper wrapper = NBTWrapper.create(incompatible.toJson());
-            result.offer(SpecKeys.GENERATIONS_DATA, wrapper);
+            result.offer(SpecKeys.REFORGED_DATA, wrapper);
         }
 
         return result;
@@ -265,5 +257,4 @@ public class ReforgedDataManager implements DataManager<ReforgedPokemon> {
 
         return element;
     }
-
 }

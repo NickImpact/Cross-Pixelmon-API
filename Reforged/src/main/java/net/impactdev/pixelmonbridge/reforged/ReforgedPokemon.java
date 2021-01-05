@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.pokemon.EnumInitializeCategory;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
@@ -26,18 +27,21 @@ import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
-import net.impactdev.pixelmonbridge.reforged.writer.SpecKeyWriter;
+import net.impactdev.pixelmonbridge.reforged.writer.ReforgedSpecKeyWriter;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
     private final ImmutableList<SpecKey<?>> UNSUPPORTED = ImmutableList.copyOf(Lists.newArrayList(
-
+            SpecKeys.LIGHT_TRIO_WORMHOLES,
+            SpecKeys.MELOETTA_ACTIVATIONS
     ));
 
     private final Map<SpecKey<?>, Object> data = Maps.newTreeMap((k1, k2) -> {
@@ -60,7 +64,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
     @Override
     public Pokemon getOrCreate() {
-        EnumSpecies species = this.get(SpecKeys.SPECIES).flatMap(EnumSpecies::getFromName).orElseThrow(() -> new RuntimeException("Species is not yet populated..."));
+        EnumSpecies species = this.get(SpecKeys.SPECIES).flatMap(EnumSpecies::getFromName).orElseThrow(() -> new RuntimeException("Unknown species..."));
         return this.pokemon == null ? this.pokemon = writeAll(Pixelmon.pokemonFactory.create(species)) : this.pokemon;
     }
 
@@ -103,7 +107,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.SHINY, pokemon.isShiny());
         result.offer(SpecKeys.LEVEL, new Level(pokemon.getLevel(), pokemon.getExperience(), pokemon.doesLevel()));
         result.offer(SpecKeys.GENDER, pokemon.getGender().ordinal());
-        result.offer(SpecKeys.NATURE, new Nature(pokemon.getNature().name(), Optional.ofNullable(pokemon.getMintNature()).map(Enum::name).orElse(null)));
+        result.offer(SpecKeys.NATURE, new Nature(pokemon.getBaseNature().name(), Optional.ofNullable(pokemon.getMintNature()).map(Enum::name).orElse(null)));
         result.offer(SpecKeys.ABILITY, new Ability(pokemon.getAbilityName(), pokemon.getAbilitySlot()));
         result.offer(SpecKeys.FRIENDSHIP, pokemon.getFriendship());
         result.offer(SpecKeys.GROWTH, pokemon.getGrowth().index);
@@ -176,17 +180,28 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.IV_SPATK, pokemon.getStats().ivs.specialAttack);
         result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().ivs.specialDefence);
         result.offer(SpecKeys.IV_SPEED, pokemon.getStats().ivs.speed);
+        result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDynamaxLevel());
 
         result.pokemon = pokemon;
         return result;
     }
 
     private Pokemon writeAll(Pokemon pokemon) {
-        for(Map.Entry<SpecKey<?>, Object> entry : this.data.entrySet()) {
+        List<Map.Entry<SpecKey<?>, Object>> prioritized = this.data.entrySet().stream()
+                .sorted(Comparator.<Map.Entry<SpecKey<?>, Object>, Integer>comparing(x -> x.getKey().getPriority()).reversed())
+                .collect(Collectors.toList());
+
+        boolean initialized = false;
+        for(Map.Entry<SpecKey<?>, Object> entry : prioritized) {
             SpecKey<?> key = entry.getKey();
             Object value = entry.getValue();
 
-            SpecKeyWriter.write(key, pokemon, value);
+            if(key.getPriority() <= 0 && !initialized) {
+                pokemon.initialize(EnumInitializeCategory.SPECIES);
+                initialized = true;
+            }
+
+            ReforgedSpecKeyWriter.write(key, pokemon, value);
         }
 
         return pokemon;
@@ -207,4 +222,5 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
         this.data.put(key, value);
     }
+
 }

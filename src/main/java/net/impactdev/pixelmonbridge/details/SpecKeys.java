@@ -16,15 +16,24 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import static net.impactdev.pixelmonbridge.details.SpecKey.*;
 
 public class SpecKeys {
 
+    public static final SpecKey<UUID> ID = SpecKey.builder()
+            .type(new TypeToken<UUID>(){})
+            .name("UUID")
+            .query(Query.of("id"))
+            .priority(200)
+            .build();
+
     public static final SpecKey<String> SPECIES = SpecKey.builder()
             .type(STRING_TYPE)
             .name("Species")
             .query(Query.of("species"))
+            .priority(100)
             .build();
 
     public static final SpecKey<Boolean> SHINY = SpecKey.builder()
@@ -34,15 +43,17 @@ public class SpecKeys {
             .build();
 
     public static final SpecKey<Integer> FORM = SpecKey.builder()
-            .type(INT_TYPE)
+            .type(new TypeToken<Integer>(){})
             .name("Form")
             .query(Query.of("form"))
+            .priority(10)
             .build();
 
     public static final SpecKey<Level> LEVEL = SpecKey.builder()
             .type(new TypeToken<Level>(){})
             .name("Level")
             .query(Query.of("level"))
+            .priority(5)
             .build();
 
     public static final SpecKey<Integer> GENDER = SpecKey.builder()
@@ -55,6 +66,7 @@ public class SpecKeys {
             .type(new TypeToken<Nature>(){})
             .name("Nature")
             .query(Query.of("nature"))
+            .priority(3)
             .build();
 
     public static final SpecKey<Ability> ABILITY = SpecKey.builder()
@@ -147,6 +159,12 @@ public class SpecKeys {
             .query(Query.of("status"))
             .build();
 
+    public static final SpecKey<Integer> DYNAMAX_LEVEL = SpecKey.builder()
+            .type(INT_TYPE)
+            .name("Dynamax Level")
+            .query(Query.of("dynamax-level"))
+            .build();
+
     // -------------------------------------------------------------------------------------
     //
     //  Extra Stats
@@ -181,6 +199,18 @@ public class SpecKeys {
             .type(new TypeToken<Byte>(){})
             .name("Minior - Color")
             .query(Query.of("extra", "minior", "color"))
+            .build();
+
+    public static final SpecKey<Integer> LIGHT_TRIO_WORMHOLES = SpecKey.builder()
+            .type(INT_TYPE)
+            .name("Light Trio - Number of Wormholes")
+            .query(Query.of("extra", "light-trio", "wormholes"))
+            .build();
+
+    public static final SpecKey<Integer> MELOETTA_ACTIVATIONS = SpecKey.builder()
+            .type(INT_TYPE)
+            .name("Meloetta - Abundant Activations")
+            .query(Query.of("extra", "meloetta", "activations"))
             .build();
 
     // -------------------------------------------------------------------------------------
@@ -231,31 +261,59 @@ public class SpecKeys {
             .type(INT_TYPE)
             .name("HP IV")
             .query(Query.of("stats", "ivs", "hp"))
+            .priority(5)
             .build();
     public static final SpecKey<Integer> IV_ATK = SpecKey.builder()
             .type(INT_TYPE)
             .name("Attack IV")
             .query(Query.of("stats", "ivs", "attack"))
+            .priority(5)
             .build();
     public static final SpecKey<Integer> IV_DEF = SpecKey.builder()
             .type(INT_TYPE)
             .name("Defence IV")
             .query(Query.of("stats", "ivs", "defence"))
+            .priority(5)
             .build();
     public static final SpecKey<Integer> IV_SPATK = SpecKey.builder()
             .type(INT_TYPE)
             .name("Special Attack IV")
             .query(Query.of("stats", "ivs", "spatk"))
+            .priority(5)
             .build();
     public static final SpecKey<Integer> IV_SPDEF = SpecKey.builder()
             .type(INT_TYPE)
             .name("Special Defence IV")
             .query(Query.of("stats", "ivs", "spdef"))
+            .priority(5)
             .build();
     public static final SpecKey<Integer> IV_SPEED = SpecKey.builder()
             .type(INT_TYPE)
             .name("Speed IV")
             .query(Query.of("stats", "ivs", "speed"))
+            .priority(5)
+            .build();
+
+    // -------------------------------------------------------------------------------------
+    //
+    //  Invalid Data Keys
+    //
+    //  AKA for data that is missing content
+    //
+    // -------------------------------------------------------------------------------------
+
+    /** This key is for a generations pokemon that cannot use reforged data */
+    public static final SpecKey<NBTWrapper> REFORGED_DATA = SpecKey.builder()
+            .type(new TypeToken<NBTWrapper>(){})
+            .name("Reforged Data")
+            .query(Query.of("incompatible", "reforged"))
+            .build();
+
+    /** This key is for a generations pokemon that cannot use reforged data */
+    public static final SpecKey<NBTWrapper> GENERATIONS_DATA = SpecKey.builder()
+            .type(new TypeToken<NBTWrapper>(){})
+            .name("Generations Data")
+            .query(Query.of("incompatible", "generations"))
             .build();
 
     private static final List<SpecKey<?>> KEYS;
@@ -272,7 +330,7 @@ public class SpecKeys {
                 continue;
             }
 
-            // ignore fields that aren't configkeys
+            // ignore fields that aren't spec keys
             if (!SpecKey.class.equals(f.getType())) {
                 continue;
             }
