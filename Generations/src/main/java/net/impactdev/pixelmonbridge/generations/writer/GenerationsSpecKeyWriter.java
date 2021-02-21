@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.pixelmongenerations.common.battle.attacks.Attack;
 import com.pixelmongenerations.common.entity.pixelmon.EntityPixelmon;
 import com.pixelmongenerations.common.entity.pixelmon.stats.Gender;
+import com.pixelmongenerations.common.entity.pixelmon.stats.StatsType;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
@@ -22,11 +23,13 @@ import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class GenerationsSpecKeyWriter {
 
@@ -160,20 +163,32 @@ public class GenerationsSpecKeyWriter {
         writers.put(SpecKeys.IV_SPATK, (p, v) -> p.stats.IVs.SpAtt = (int) v);
         writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.stats.IVs.SpDef = (int) v);
         writers.put(SpecKeys.IV_SPEED, (p, v) -> p.stats.IVs.Speed = (int) v);
+
+        writers.put(SpecKeys.HYPER_HP, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.HP)));
+        writers.put(SpecKeys.HYPER_ATTACK, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.Attack)));
+        writers.put(SpecKeys.HYPER_DEFENCE, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.Defence)));
+        writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.SpecialAttack)));
+        writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.SpecialDefence)));
+        writers.put(SpecKeys.HYPER_SPEED, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.Speed)));
+
         writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
             // If this key is present, it indicates that we managed to read in Reforged Data
             // that we cannot accept. As such, we should write this data out to the NBT
             // of the recipient of the data
 
-            NBTWrapper wrapper = (NBTWrapper) v;
-            NBTTagCompound parent = new NBTTagCompound();
-            p.writeToNBT(parent);
+            JSONWrapper wrapper = (JSONWrapper) v;
 
-            parent.setTag("reforged", wrapper.getNBT());
+            NBTTagCompound root = new NBTTagCompound();
+            NBTTagCompound parent = new NBTTagCompound();
+            p.writeToNBT(root);
+
+            root.setTag("bridge-api", parent);
+            parent.setString("reforged", wrapper.serialize().toJson().toString());
+
             p.readFromNBT(parent);
         });
         writers.put(SpecKeys.GENERATIONS_DATA, (p, v) -> {
-            NBTWrapper wrapper = (NBTWrapper) v;
+            JSONWrapper wrapper = (JSONWrapper) v;
 
             wrapper.get(SpecKeys.MELOETTA_ACTIVATIONS).ifPresent(data -> {
                 MeloettaStats stats = new MeloettaStats();
@@ -192,6 +207,12 @@ public class GenerationsSpecKeyWriter {
     public static void write(SpecKey<?> key, EntityPixelmon target, Object value) {
         if(writers.containsKey(key)) {
             writers.get(key).accept(target, value);
+        }
+    }
+
+    public static void actor(boolean value, Runnable consumer) {
+        if(value) {
+            consumer.run();
         }
     }
 }

@@ -5,6 +5,7 @@ import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
@@ -25,12 +26,14 @@ import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
@@ -39,6 +42,7 @@ public class ReforgedSpecKeyWriter {
     private static Map<SpecKey<?>, BiConsumer<Pokemon, Object>> writers = Maps.newHashMap();
 
     static {
+        writers.put(SpecKeys.ID, (p, v) -> p.setUUID((UUID) v));
         writers.put(SpecKeys.SPECIES, (p, v) -> p.setSpecies(EnumSpecies.getFromNameAnyCase((String) v)));
         writers.put(SpecKeys.SHINY, (p, v) -> p.setShiny((boolean) v));
         writers.put(SpecKeys.FORM, (p, v) -> p.setForm((int) v));
@@ -201,6 +205,12 @@ public class ReforgedSpecKeyWriter {
         writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().ivs.specialAttack = (int) v);
         writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().ivs.specialDefence = (int) v);
         writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().ivs.speed = (int) v);
+        writers.put(SpecKeys.HYPER_HP, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.HP, (boolean) v));
+        writers.put(SpecKeys.HYPER_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Attack, (boolean) v));
+        writers.put(SpecKeys.HYPER_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Defence, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialAttack, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialDefence, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPEED, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Speed, (boolean) v));
 
         writers.put(SpecKeys.DYNAMAX_LEVEL, (p, v) -> p.setDynamaxLevel((int) v));
 
@@ -209,15 +219,19 @@ public class ReforgedSpecKeyWriter {
             // that we cannot accept. As such, we should write this data out to the NBT
             // of the recipient of the data
 
-            NBTWrapper wrapper = (NBTWrapper) v;
-            NBTTagCompound parent = new NBTTagCompound();
-            p.writeToNBT(parent);
+            JSONWrapper wrapper = (JSONWrapper) v;
 
-            parent.setTag("generations", wrapper.getNBT());
+            NBTTagCompound root = new NBTTagCompound();
+            NBTTagCompound parent = new NBTTagCompound();
+            p.writeToNBT(root);
+
+            root.setTag("bridge-api", parent);
+            parent.setString("generations", wrapper.serialize().toJson().toString());
+
             p.readFromNBT(parent);
         });
         writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
-            NBTWrapper wrapper = (NBTWrapper) v;
+            JSONWrapper wrapper = (JSONWrapper) v;
 
             wrapper.get(SpecKeys.POKERUS).ifPresent(data -> {
                 p.setPokerus(new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[data.getType()]));

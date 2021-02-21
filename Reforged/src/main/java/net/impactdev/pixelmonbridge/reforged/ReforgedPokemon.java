@@ -3,11 +3,14 @@ package net.impactdev.pixelmonbridge.reforged;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.EnumInitializeCategory;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
+import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
@@ -26,8 +29,10 @@ import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.reforged.writer.ReforgedSpecKeyWriter;
+import net.minecraft.nbt.NBTTagCompound;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -85,7 +90,11 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
             }
         }
 
-        this.data.put(key, data);
+        if(this.supports(key)) {
+            this.data.put(key, data);
+        } else {
+            this.data.put(SpecKeys.GENERATIONS_DATA, this.get(SpecKeys.GENERATIONS_DATA).orElseGet(JSONWrapper::new).append(key, data));
+        }
         return true;
     }
 
@@ -102,6 +111,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
     public static ReforgedPokemon from(Pokemon pokemon) {
         ReforgedPokemon result = new ReforgedPokemon();
+        result.offer(SpecKeys.ID, pokemon.getUUID());
         result.offer(SpecKeys.SPECIES, pokemon.getSpecies().name);
         result.offer(SpecKeys.FORM, pokemon.getForm());
         result.offer(SpecKeys.SHINY, pokemon.isShiny());
@@ -180,7 +190,26 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.IV_SPATK, pokemon.getStats().ivs.specialAttack);
         result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().ivs.specialDefence);
         result.offer(SpecKeys.IV_SPEED, pokemon.getStats().ivs.speed);
+        result.offer(SpecKeys.HYPER_HP, pokemon.getStats().ivs.isHyperTrained(StatsType.HP));
+        result.offer(SpecKeys.HYPER_ATTACK, pokemon.getStats().ivs.isHyperTrained(StatsType.Attack));
+        result.offer(SpecKeys.HYPER_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.Defence));
+        result.offer(SpecKeys.HYPER_SPECIAL_ATTACK, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialAttack));
+        result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialDefence));
+        result.offer(SpecKeys.HYPER_SPEED, pokemon.getStats().ivs.isHyperTrained(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDynamaxLevel());
+
+        NBTTagCompound nbt = new NBTTagCompound();
+        pokemon.writeToNBT(nbt);
+        if(nbt.hasKey("bridge-api")) {
+            NBTTagCompound data = nbt.getCompoundTag("bridge-api");
+            if(data.hasKey("reforged")) {
+                JSONWrapper wrapper = new JSONWrapper();
+                String stored = data.getString("reforged");
+                JsonObject json = new GsonBuilder().create().fromJson(stored, JsonObject.class);
+                wrapper.deserialize(json);
+                result.offer(SpecKeys.REFORGED_DATA, wrapper);
+            }
+        }
 
         result.pokemon = pokemon;
         return result;
@@ -220,7 +249,11 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
             return;
         }
 
-        this.data.put(key, value);
+        if(this.supports(key)) {
+            this.data.put(key, value);
+        } else {
+            this.data.put(SpecKeys.GENERATIONS_DATA, this.get(SpecKeys.GENERATIONS_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, data));
+        }
     }
 
 }

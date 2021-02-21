@@ -10,6 +10,7 @@ import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 
 import java.lang.reflect.Field;
@@ -294,6 +295,37 @@ public class SpecKeys {
             .priority(5)
             .build();
 
+    public static final SpecKey<Boolean> HYPER_HP = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper HP IV")
+            .query(Query.of("stats.ivs.hyper.hp"))
+            .build();
+    public static final SpecKey<Boolean> HYPER_ATTACK = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper Attack IV")
+            .query(Query.of("stats.ivs.hyper.attack"))
+            .build();
+    public static final SpecKey<Boolean> HYPER_DEFENCE = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper Defence IV")
+            .query(Query.of("stats.ivs.hyper.defence"))
+            .build();
+    public static final SpecKey<Boolean> HYPER_SPECIAL_ATTACK = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper Special Attack IV")
+            .query(Query.of("stats.ivs.hyper.special-attack"))
+            .build();
+    public static final SpecKey<Boolean> HYPER_SPECIAL_DEFENCE = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper Special Defence IV")
+            .query(Query.of("stats.ivs.hyper.special-defence"))
+            .build();
+    public static final SpecKey<Boolean> HYPER_SPEED = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("Hyper Speed IV")
+            .query(Query.of("stats.ivs.hyper.speed"))
+            .build();
+
     // -------------------------------------------------------------------------------------
     //
     //  Invalid Data Keys
@@ -303,15 +335,15 @@ public class SpecKeys {
     // -------------------------------------------------------------------------------------
 
     /** This key is for a generations pokemon that cannot use reforged data */
-    public static final SpecKey<NBTWrapper> REFORGED_DATA = SpecKey.builder()
-            .type(new TypeToken<NBTWrapper>(){})
+    public static final SpecKey<JSONWrapper> REFORGED_DATA = SpecKey.builder()
+            .type(new TypeToken<JSONWrapper>(){})
             .name("Reforged Data")
             .query(Query.of("incompatible", "reforged"))
             .build();
 
     /** This key is for a generations pokemon that cannot use reforged data */
-    public static final SpecKey<NBTWrapper> GENERATIONS_DATA = SpecKey.builder()
-            .type(new TypeToken<NBTWrapper>(){})
+    public static final SpecKey<JSONWrapper> GENERATIONS_DATA = SpecKey.builder()
+            .type(new TypeToken<JSONWrapper>(){})
             .name("Generations Data")
             .query(Query.of("incompatible", "generations"))
             .build();

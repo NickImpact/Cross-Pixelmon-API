@@ -3,10 +3,13 @@ package net.impactdev.pixelmonbridge.generations;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.pixelmongenerations.common.battle.attacks.Attack;
 import com.pixelmongenerations.common.entity.pixelmon.EntityPixelmon;
 import com.pixelmongenerations.common.entity.pixelmon.stats.ExtraStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.Gender;
+import com.pixelmongenerations.common.entity.pixelmon.stats.StatsType;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
@@ -23,7 +26,7 @@ import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
-import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.generations.writer.GenerationsSpecKeyWriter;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
@@ -95,11 +98,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         if(this.supports(key)) {
             this.data.put(key, data);
         } else {
-            this.data.put(SpecKeys.REFORGED_DATA,
-                    this.get(SpecKeys.REFORGED_DATA).orElseGet(() -> new NBTWrapper(new NBTTagCompound()))
-                            .append(key.getQuery(), data)
-            );
-
+            this.data.put(SpecKeys.REFORGED_DATA, this.get(SpecKeys.REFORGED_DATA).orElseGet(JSONWrapper::new).append(key, data));
         }
         return true;
     }
@@ -168,6 +167,12 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.IV_SPATK, pokemon.stats.IVs.SpAtt);
         result.offer(SpecKeys.IV_SPDEF, pokemon.stats.IVs.SpDef);
         result.offer(SpecKeys.IV_SPEED, pokemon.stats.IVs.Speed);
+        result.offer(SpecKeys.HYPER_HP, pokemon.stats.isBottleCapIV(StatsType.HP));
+        result.offer(SpecKeys.HYPER_ATTACK, pokemon.stats.isBottleCapIV(StatsType.Attack));
+        result.offer(SpecKeys.HYPER_DEFENCE, pokemon.stats.isBottleCapIV(StatsType.Defence));
+        result.offer(SpecKeys.HYPER_SPECIAL_ATTACK, pokemon.stats.isBottleCapIV(StatsType.SpecialAttack));
+        result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.stats.isBottleCapIV(StatsType.SpecialDefence));
+        result.offer(SpecKeys.HYPER_SPEED, pokemon.stats.isBottleCapIV(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDataManager().get(EntityPixelmon.dwDynamaxLevel));
 
         Moves moves = new Moves();
@@ -186,10 +191,18 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
 
         NBTTagCompound nbt = new NBTTagCompound();
         pokemon.writeToNBT(nbt);
-        if(nbt.hasKey("reforged")) {
-            result.offer(SpecKeys.REFORGED_DATA, new NBTWrapper(nbt.getCompoundTag("reforged")));
+        if(nbt.hasKey("bridge-api")) {
+            NBTTagCompound data = nbt.getCompoundTag("bridge-api");
+            if(data.hasKey("reforged")) {
+                JSONWrapper wrapper = new JSONWrapper();
+                String stored = data.getString("reforged");
+                JsonObject json = new GsonBuilder().create().fromJson(stored, JsonObject.class);
+                wrapper.deserialize(json);
+                result.offer(SpecKeys.REFORGED_DATA, wrapper);
+            }
         }
 
+        result.pokemon = pokemon;
         return result;
     }
 
@@ -217,6 +230,10 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
             return;
         }
 
-        this.data.put(key, value);
+        if(this.supports(key)) {
+            this.data.put(key, value);
+        } else {
+            this.data.put(SpecKeys.REFORGED_DATA, this.get(SpecKeys.REFORGED_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, data));
+        }
     }
 }

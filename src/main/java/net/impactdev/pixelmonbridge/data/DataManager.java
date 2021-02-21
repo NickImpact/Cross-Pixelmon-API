@@ -1,19 +1,41 @@
 package net.impactdev.pixelmonbridge.data;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.data.factory.JArray;
 import net.impactdev.pixelmonbridge.data.factory.JElement;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.Query;
+import net.impactdev.pixelmonbridge.details.SpecKey;
+import net.impactdev.pixelmonbridge.details.SpecKeys;
+import net.impactdev.pixelmonbridge.details.components.Ability;
+import net.impactdev.pixelmonbridge.details.components.EggInfo;
+import net.impactdev.pixelmonbridge.details.components.Level;
+import net.impactdev.pixelmonbridge.details.components.Moves;
+import net.impactdev.pixelmonbridge.details.components.Nature;
+import net.impactdev.pixelmonbridge.details.components.Pokerus;
+import net.impactdev.pixelmonbridge.details.components.Trainer;
+import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-public interface DataManager<P extends ImpactDevPokemon<?>> {
+public interface DataManager<P> {
 
     /**
      * Serializes a Pokemon to representable JSON. When the processs has completed,
