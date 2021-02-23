@@ -16,20 +16,13 @@ import com.pixelmongenerations.core.enums.EnumSpecies;
 import com.pixelmongenerations.core.enums.items.EnumPokeball;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
-import net.impactdev.pixelmonbridge.details.components.Ability;
-import net.impactdev.pixelmonbridge.details.components.EggInfo;
-import net.impactdev.pixelmonbridge.details.components.Level;
-import net.impactdev.pixelmonbridge.details.components.Moves;
-import net.impactdev.pixelmonbridge.details.components.Nature;
-import net.impactdev.pixelmonbridge.details.components.Trainer;
+import net.impactdev.pixelmonbridge.details.components.*;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
-import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class GenerationsSpecKeyWriter {
 
@@ -111,6 +104,12 @@ public class GenerationsSpecKeyWriter {
             nbt = p.writeToNBT(nbt);
             nbt.setInteger("steps", info.getSteps());
             p.readFromNBT(nbt);
+        });
+        writers.put(SpecKeys.POKERUS, (p, v) -> {
+            Pokerus pokerus = (Pokerus) v;
+            p.pokerus = pokerus.getType();
+            p.pokerusTimer = pokerus.getSecondsSinceInfection() * 20; //pokerus  timer in gens is in seconds
+            // we also don't use the isAnnounced flag here
         });
         writers.put(SpecKeys.MOVESET, (p, v) -> {
             Moves moves = (Moves) v;
