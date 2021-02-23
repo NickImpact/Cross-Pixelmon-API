@@ -18,6 +18,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MiniorStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStats;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
@@ -133,7 +134,8 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
         if(pokemon.getPokerus() != null) {
             result.offer(SpecKeys.POKERUS, new Pokerus(
-                    pokemon.getPokerus().type.ordinal(),
+                    PixelmonSource.Reforged,
+                    pokemon.getPokerus().type.ordinal() == 0 ? 0 : pokemon.getPokerus().type.ordinal() + 0xA,
                     pokemon.getPokerus().secondsSinceInfection,
                     pokemon.getPokerus().announced)
             );
