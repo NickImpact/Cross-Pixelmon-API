@@ -16,6 +16,7 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaS
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
@@ -135,6 +136,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
 
         if(pokemon.pokerus > 0) {
             result.offer(SpecKeys.POKERUS, new Pokerus(
+                    PixelmonSource.Generations,
                     pokemon.pokerus,
                     pokemon.pokerusTimer / 20, //conversion from ticks to seconds
                     false)
