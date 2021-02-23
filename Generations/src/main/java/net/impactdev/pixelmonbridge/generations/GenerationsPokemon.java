@@ -139,7 +139,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
                     PixelmonSource.Generations,
                     pokemon.pokerus,
                     pokemon.pokerusTimer / 20, //conversion from ticks to seconds
-                    false)
+                    true)
             );
         }
 
