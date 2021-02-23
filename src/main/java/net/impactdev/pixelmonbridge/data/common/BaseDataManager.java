@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.data.DataManager;
 import net.impactdev.pixelmonbridge.data.Reader;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.Ability;
@@ -72,6 +73,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.POKERUS, data -> {
             JsonObject json = data.getAsJsonObject();
             return new Pokerus(
+                    read(SpecKeys.POKERUS, () -> json.get("source"), value -> PixelmonSource.valueOf(value.getAsString())),
                     read(SpecKeys.POKERUS, () -> json.get("type"), JsonElement::getAsInt),
                     read(SpecKeys.POKERUS, () -> json.get("secondsSinceInfection"), JsonElement::getAsInt),
                     read(SpecKeys.POKERUS, () -> json.get("announced"), JsonElement::getAsBoolean)
