@@ -17,6 +17,7 @@ import java.util.StringJoiner;
 public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
 
     public ReforgedDataManager() {
+        super();
         this.customReaders.put(SpecKeys.REFORGED_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
     }
 

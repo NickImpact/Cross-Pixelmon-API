@@ -16,7 +16,10 @@ public class Pokerus implements Writable<JObject> {
         this.announced = announced;
     }
 
-    public int getType() {
+    public int getType(boolean reforged) {
+        if(reforged && this.type != 0) {
+            return this.type - 0xA;
+        }
         return type;
     }
 

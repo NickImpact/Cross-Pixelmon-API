@@ -133,7 +133,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
         if(pokemon.getPokerus() != null) {
             result.offer(SpecKeys.POKERUS, new Pokerus(
-                    pokemon.getPokerus().type.ordinal(),
+                    pokemon.getPokerus().type.ordinal() == 0 ? 0 : pokemon.getPokerus().type.ordinal() + 0xA,
                     pokemon.getPokerus().secondsSinceInfection,
                     pokemon.getPokerus().announced)
             );

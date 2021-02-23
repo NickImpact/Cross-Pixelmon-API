@@ -113,7 +113,7 @@ public class ReforgedSpecKeyWriter {
         });
         writers.put(SpecKeys.POKERUS, (p, v) -> {
             Pokerus pokerus = (Pokerus) v;
-            com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[pokerus.getType()]);
+            com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[pokerus.getType(true)]);
             actual.secondsSinceInfection = pokerus.getSecondsSinceInfection();
             actual.announced = pokerus.isAnnounced();
             p.setPokerus(actual);
@@ -234,7 +234,7 @@ public class ReforgedSpecKeyWriter {
             JSONWrapper wrapper = (JSONWrapper) v;
 
             wrapper.get(SpecKeys.POKERUS).ifPresent(data -> {
-                p.setPokerus(new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[data.getType()]));
+                p.setPokerus(new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[data.getType(true)]));
                 p.getPokerus().announced = data.isAnnounced();
                 p.getPokerus().secondsSinceInfection = data.getSecondsSinceInfection();
             });

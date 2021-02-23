@@ -103,9 +103,11 @@ public interface DataManager<P> {
             } else if(value instanceof Map) {
                 writer.add(key, toMap((Map<?, ?>) value));
             } else if(value instanceof Writable) {
-                writer.add(key, ((Writable<?>)value).serialize());
+                writer.add(key, ((Writable<?>) value).serialize());
+            } else if(value instanceof UUID) {
+                writer.add(key, ((UUID) value).toString());
             } else {
-                throw new IllegalArgumentException("Unable to translate object to JSON: " + value);
+                throw new IllegalArgumentException("Unable to translate object to JSON (" + key + ":" + value + ")");
             }
         } else if(element instanceof JArray) {
             JArray writer = (JArray) element;
