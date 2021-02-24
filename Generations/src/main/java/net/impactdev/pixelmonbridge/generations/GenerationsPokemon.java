@@ -16,15 +16,11 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaS
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
-import net.impactdev.pixelmonbridge.details.components.Ability;
-import net.impactdev.pixelmonbridge.details.components.EggInfo;
-import net.impactdev.pixelmonbridge.details.components.Level;
-import net.impactdev.pixelmonbridge.details.components.Moves;
-import net.impactdev.pixelmonbridge.details.components.Nature;
-import net.impactdev.pixelmonbridge.details.components.Trainer;
+import net.impactdev.pixelmonbridge.details.components.*;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.generations.writer.GenerationsSpecKeyWriter;
@@ -39,7 +35,6 @@ import java.util.UUID;
 public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
 
     private final ImmutableList<SpecKey<?>> UNSUPPORTED = ImmutableList.copyOf(Lists.newArrayList(
-            SpecKeys.POKERUS,
             SpecKeys.MELTAN_ORES_SMELTED,
             SpecKeys.MAREEP_WOOL_GROWTH,
             SpecKeys.MINIOR_COLOR
@@ -137,6 +132,15 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
                     pokemon.eggCycles,
                     pokemon.writeToNBT(new NBTTagCompound()).getInteger("steps")
             ));
+        }
+
+        if(pokemon.pokerus > 0) {
+            result.offer(SpecKeys.POKERUS, new Pokerus(
+                    PixelmonSource.Generations,
+                    pokemon.pokerus,
+                    pokemon.pokerusTimer / 20, //conversion from ticks to seconds
+                    true)
+            );
         }
 
         result.offer(SpecKeys.HELD_ITEM, new ItemStackWrapper(pokemon.getHeldItem(EnumHand.MAIN_HAND)));
