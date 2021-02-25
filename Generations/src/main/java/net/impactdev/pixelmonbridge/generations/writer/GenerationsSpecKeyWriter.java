@@ -108,7 +108,7 @@ public class GenerationsSpecKeyWriter {
         writers.put(SpecKeys.POKERUS, (p, v) -> {
             Pokerus pokerus = (Pokerus) v;
             p.pokerus = pokerus.getType();
-            p.pokerusTimer = pokerus.getSecondsSinceInfection() * 20; //pokerus  timer in gens is in seconds
+            p.pokerusTimer = pokerus.getSecondsSinceInfection() * 20; //pokerus  timer in gens is in ticks
             // we also don't use the isAnnounced flag here
         });
         writers.put(SpecKeys.MOVESET, (p, v) -> {

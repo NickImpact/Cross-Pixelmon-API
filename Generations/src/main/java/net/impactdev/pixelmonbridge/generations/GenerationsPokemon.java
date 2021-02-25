@@ -67,10 +67,11 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         EnumSpecies species = this.get(SpecKeys.SPECIES).flatMap(EnumSpecies::getFromName).orElseThrow(() -> new RuntimeException("Species is not yet populated..."));
         EntityPixelmon result = new EntityPixelmon(FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld());
 
-        this.get(SpecKeys.FORM).ifPresent(result::setForm);
+        this.get(SpecKeys.FORM).ifPresent((form) -> result.setForm(form, false));
         this.get(SpecKeys.GENDER).ifPresent(gender -> result.setGender(Gender.getGender(gender.shortValue())));
         result.init(species.name);
-        return result;
+
+        return this.writeAll(result);
     }
 
     @Override
