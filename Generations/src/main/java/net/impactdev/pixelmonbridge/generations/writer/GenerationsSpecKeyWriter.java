@@ -14,6 +14,7 @@ import com.pixelmongenerations.core.enums.EnumGrowth;
 import com.pixelmongenerations.core.enums.EnumNature;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import com.pixelmongenerations.core.enums.items.EnumPokeball;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.*;
@@ -55,7 +56,7 @@ public class GenerationsSpecKeyWriter {
             }
 
             p.setNature(actual);
-            if(nature.getMint() != null) {
+            if(nature.getMint() != null && !nature.getMint().equals(nature.getActual())) {
                 EnumNature mint = EnumNature.natureFromString(nature.getMint());
                 if(mint == null) {
                     throw new IllegalArgumentException("Invalid mint nature");
@@ -107,8 +108,11 @@ public class GenerationsSpecKeyWriter {
         });
         writers.put(SpecKeys.POKERUS, (p, v) -> {
             Pokerus pokerus = (Pokerus) v;
-            p.pokerus = pokerus.getType();
-            p.pokerusTimer = pokerus.getSecondsSinceInfection() * 20; //pokerus  timer in gens is in ticks
+
+            int type = pokerus.getSource() == PixelmonSource.Generations ? pokerus.getType() : 2;
+
+            p.setPokeRus(type);
+            p.setPokeRusTimer(pokerus.getSecondsSinceInfection() * 20); //pokerus  timer in gens is in ticks
             // we also don't use the isAnnounced flag here
         });
         writers.put(SpecKeys.MOVESET, (p, v) -> {
@@ -174,17 +178,17 @@ public class GenerationsSpecKeyWriter {
             // If this key is present, it indicates that we managed to read in Reforged Data
             // that we cannot accept. As such, we should write this data out to the NBT
             // of the recipient of the data
-
             JSONWrapper wrapper = (JSONWrapper) v;
 
             NBTTagCompound root = new NBTTagCompound();
             NBTTagCompound parent = new NBTTagCompound();
             p.writeToNBT(root);
 
-            root.setTag("bridge-api", parent);
+            NBTTagCompound forge = root.getCompoundTag("ForgeData");
+            forge.setTag("bridge-api", parent);
             parent.setString("reforged", wrapper.serialize().toJson().toString());
 
-            p.readFromNBT(parent);
+            p.readFromNBT(root);
         });
         writers.put(SpecKeys.GENERATIONS_DATA, (p, v) -> {
             JSONWrapper wrapper = (JSONWrapper) v;

@@ -140,8 +140,8 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
                     PixelmonSource.Generations,
                     pokemon.pokerus,
                     pokemon.pokerusTimer / 20, //conversion from ticks to seconds
-                    true)
-            );
+                    true
+            ));
         }
 
         result.offer(SpecKeys.HELD_ITEM, new ItemStackWrapper(pokemon.getHeldItem(EnumHand.MAIN_HAND)));
@@ -153,9 +153,9 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
             result.offer(SpecKeys.MEW_CLONES, convert(MewStats.class, pokemon.extraStats).numCloned);
         } else if(pokemon.getSpecies() == EnumSpecies.Azelf || pokemon.getSpecies() == EnumSpecies.Mesprit || pokemon.getSpecies() == EnumSpecies.Uxie) {
             result.offer(SpecKeys.LAKE_TRIO_ENCHANTS, convert(LakeTrioStats.class, pokemon.extraStats).numEnchanted);
-        } else if(pokemon.getSpecies() == EnumSpecies.Meltan) {
-            result.offer(SpecKeys.MELTAN_ORES_SMELTED, convert(MeloettaStats.class, pokemon.extraStats).abundantActivations);
-        } else if(pokemon.getSpecies() == EnumSpecies.Mareep) {
+        } else if(pokemon.getSpecies() == EnumSpecies.Meloetta) {
+            result.offer(SpecKeys.MELOETTA_ACTIVATIONS, convert(MeloettaStats.class, pokemon.extraStats).abundantActivations);
+        } else if(pokemon.getSpecies() == EnumSpecies.Lunala || pokemon.getSpecies() == EnumSpecies.Solgaleo || pokemon.getSpecies() == EnumSpecies.Necrozma) {
             result.offer(SpecKeys.LIGHT_TRIO_WORMHOLES, convert(LightTrioStats.class, pokemon.extraStats).numWormholes);
         }
 
@@ -196,13 +196,14 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
 
         NBTTagCompound nbt = new NBTTagCompound();
         pokemon.writeToNBT(nbt);
+        nbt = nbt.getCompoundTag("ForgeData");
         if(nbt.hasKey("bridge-api")) {
             NBTTagCompound data = nbt.getCompoundTag("bridge-api");
             if(data.hasKey("reforged")) {
                 JSONWrapper wrapper = new JSONWrapper();
                 String stored = data.getString("reforged");
                 JsonObject json = new GsonBuilder().create().fromJson(stored, JsonObject.class);
-                wrapper.deserialize(json);
+                wrapper = wrapper.deserialize(json);
                 result.offer(SpecKeys.REFORGED_DATA, wrapper);
             }
         }
@@ -238,7 +239,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         if(this.supports(key)) {
             this.data.put(key, value);
         } else {
-            this.data.put(SpecKeys.REFORGED_DATA, this.get(SpecKeys.REFORGED_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, data));
+            this.data.put(SpecKeys.REFORGED_DATA, this.get(SpecKeys.REFORGED_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, value));
         }
     }
 }

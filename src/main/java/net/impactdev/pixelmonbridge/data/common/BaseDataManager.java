@@ -72,9 +72,17 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         ));
         customReaders.put(SpecKeys.POKERUS, data -> {
             JsonObject json = data.getAsJsonObject();
+
+            boolean legacy = json.get("source") == null;
             return new Pokerus(
-                    read(SpecKeys.POKERUS, () -> json.get("source"), value -> PixelmonSource.valueOf(value.getAsString())),
-                    read(SpecKeys.POKERUS, () -> json.get("type"), JsonElement::getAsInt),
+                    readOrSupply(() -> json.get("source"), value -> PixelmonSource.valueOf(value.getAsString()), PixelmonSource.Reforged),
+                    read(SpecKeys.POKERUS, () -> json.get("type"), j -> {
+                        if(legacy) {
+                            return j.getAsInt() + 0xA;
+                        } else {
+                            return j.getAsInt();
+                        }
+                    }),
                     read(SpecKeys.POKERUS, () -> json.get("secondsSinceInfection"), JsonElement::getAsInt),
                     read(SpecKeys.POKERUS, () -> json.get("announced"), JsonElement::getAsBoolean)
             );
@@ -154,6 +162,10 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
 
     <T> T readAndAllowNull(Supplier<JsonElement> supplier, Function<JsonElement, T> mapper) {
         return Optional.ofNullable(supplier.get()).map(mapper).orElse(null);
+    }
+
+    <T> T readOrSupply(Supplier<JsonElement> supplier, Function<JsonElement, T> mapper, T def) {
+        return Optional.ofNullable(supplier.get()).map(mapper).orElse(def);
     }
 
 

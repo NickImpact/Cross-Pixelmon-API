@@ -16,6 +16,7 @@ import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.EnumPokerusType;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.enums.items.EnumPokeballs;
+import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.Ability;
@@ -113,7 +114,9 @@ public class ReforgedSpecKeyWriter {
         });
         writers.put(SpecKeys.POKERUS, (p, v) -> {
             Pokerus pokerus = (Pokerus) v;
-            com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[pokerus.getType()]);
+            int type = pokerus.getSource() == PixelmonSource.Reforged ? pokerus.getType() : 0;
+
+            com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[type]);
             actual.secondsSinceInfection = pokerus.getSecondsSinceInfection();
             actual.announced = pokerus.isAnnounced();
             p.setPokerus(actual);
@@ -225,10 +228,11 @@ public class ReforgedSpecKeyWriter {
             NBTTagCompound parent = new NBTTagCompound();
             p.writeToNBT(root);
 
-            root.setTag("bridge-api", parent);
+            NBTTagCompound forge = root.getCompoundTag("ForgeData");
+            forge.setTag("bridge-api", parent);
             parent.setString("generations", wrapper.serialize().toJson().toString());
 
-            p.readFromNBT(parent);
+            p.readFromNBT(root);
         });
         writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
             JSONWrapper wrapper = (JSONWrapper) v;
@@ -267,7 +271,6 @@ public class ReforgedSpecKeyWriter {
             Field field = Pokemon.class.getDeclaredField("extraStats");
             field.setAccessible(true);
             field.set(pokemon, stats);
-            pokemon.getExtraStats().specialPrep(pokemon);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }

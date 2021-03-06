@@ -6,24 +6,19 @@ import net.impactdev.pixelmonbridge.details.PixelmonSource;
 
 public class Pokerus implements Writable<JObject> {
 
-    /**
-     * The value regarding the state/type of the Pokerus infection
-     * on a pokemon. Due to differences between the implementations
-     * of the Reforged and Generations code, we will let Reforged
-     * control values 0, 10, 11, 12, 13. This is to match up with the
-     * names of their enum values, A, B, C, and D. For Generations,
-     * we will simply use 0, 1, 2.
-     * <p/>
-     * For generations the types go as follows: <br>
-     * - 0 = not infected <br>
-     * - 1 = infected <br>
-     * - 2 = cured (can't be infected again) <br>
-     */
+    /** The value regarding the state/type of the Pokerus infection on a pokemon */
     private int type;
     private int secondsSinceInfection;
     private boolean announced;
 
-    /** The source mod that created this Pokerus data */
+    /**
+     * The source mod that created this Pokerus data
+     *
+     * <p>Due to the vast differences in Pokerus implementations, this source will control
+     * whether or not the pokemon will retain the data, or be forced into a cured state. A
+     * pokemon will be forced into a cured state only when it is transferred across pixelmon
+     * versions, due to the lack of variables missing </p>
+     */
     private PixelmonSource source;
 
     public Pokerus(PixelmonSource source, int type, int secondsSinceInfection, boolean announced) {

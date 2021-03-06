@@ -298,32 +298,32 @@ public class SpecKeys {
     public static final SpecKey<Boolean> HYPER_HP = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper HP IV")
-            .query(Query.of("stats.ivs.hyper.hp"))
+            .query(Query.of("stats", "ivs", "hyper", "hp"))
             .build();
     public static final SpecKey<Boolean> HYPER_ATTACK = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper Attack IV")
-            .query(Query.of("stats.ivs.hyper.attack"))
+            .query(Query.of("stats", "ivs", "hyper", "attack"))
             .build();
     public static final SpecKey<Boolean> HYPER_DEFENCE = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper Defence IV")
-            .query(Query.of("stats.ivs.hyper.defence"))
+            .query(Query.of("stats", "ivs", "hyper", "defence"))
             .build();
     public static final SpecKey<Boolean> HYPER_SPECIAL_ATTACK = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper Special Attack IV")
-            .query(Query.of("stats.ivs.hyper.special-attack"))
+            .query(Query.of("stats", "ivs", "hyper", "special-attack"))
             .build();
     public static final SpecKey<Boolean> HYPER_SPECIAL_DEFENCE = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper Special Defence IV")
-            .query(Query.of("stats.ivs.hyper.special-defence"))
+            .query(Query.of("stats", "ivs", "hyper", "special-defence"))
             .build();
     public static final SpecKey<Boolean> HYPER_SPEED = SpecKey.builder()
             .type(BOOLEAN_TYPE)
             .name("Hyper Speed IV")
-            .query(Query.of("stats.ivs.hyper.speed"))
+            .query(Query.of("stats", "ivs", "hyper", "speed"))
             .build();
 
     // -------------------------------------------------------------------------------------

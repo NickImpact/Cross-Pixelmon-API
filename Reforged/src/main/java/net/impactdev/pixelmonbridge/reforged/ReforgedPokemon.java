@@ -202,14 +202,16 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
         NBTTagCompound nbt = new NBTTagCompound();
         pokemon.writeToNBT(nbt);
+        nbt = nbt.getCompoundTag("ForgeData");
+
         if(nbt.hasKey("bridge-api")) {
             NBTTagCompound data = nbt.getCompoundTag("bridge-api");
-            if(data.hasKey("reforged")) {
+            if(data.hasKey("generations")) {
                 JSONWrapper wrapper = new JSONWrapper();
-                String stored = data.getString("reforged");
+                String stored = data.getString("generations");
                 JsonObject json = new GsonBuilder().create().fromJson(stored, JsonObject.class);
-                wrapper.deserialize(json);
-                result.offer(SpecKeys.REFORGED_DATA, wrapper);
+                wrapper = wrapper.deserialize(json);
+                result.offer(SpecKeys.GENERATIONS_DATA, wrapper);
             }
         }
 
@@ -254,7 +256,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         if(this.supports(key)) {
             this.data.put(key, value);
         } else {
-            this.data.put(SpecKeys.GENERATIONS_DATA, this.get(SpecKeys.GENERATIONS_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, data));
+            this.data.put(SpecKeys.GENERATIONS_DATA, this.get(SpecKeys.GENERATIONS_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, value));
         }
     }
 
