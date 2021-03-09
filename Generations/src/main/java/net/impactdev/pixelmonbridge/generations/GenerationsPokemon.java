@@ -24,6 +24,7 @@ import net.impactdev.pixelmonbridge.details.components.*;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.generations.writer.GenerationsSpecKeyWriter;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -124,10 +125,15 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.GROWTH, pokemon.getGrowth().index);
         result.offer(SpecKeys.NICKNAME, pokemon.getNickname());
         result.offer(SpecKeys.TEXTURE, pokemon.getCustomTexture());
-        if(pokemon.originalTrainerUUID != null) {
-            result.offer(SpecKeys.POKEBALL, pokemon.caughtBall.ordinal());
+
+        if(!pokemon.originalTrainerUUID.equals("")) {
             result.offer(SpecKeys.TRAINER, new Trainer(UUID.fromString(pokemon.originalTrainerUUID), pokemon.originalTrainer));
         }
+
+        if(pokemon.caughtBall != null) {
+            result.offer(SpecKeys.POKEBALL, pokemon.caughtBall.ordinal());
+        }
+
         if(pokemon.isEgg) {
             result.offer(SpecKeys.EGG_INFO, new EggInfo(
                     pokemon.eggCycles,

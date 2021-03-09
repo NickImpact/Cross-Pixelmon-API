@@ -3,10 +3,13 @@ package net.impactdev.pixelmonbridge.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.data.context.Context;
+import net.impactdev.pixelmonbridge.data.context.ContextualRegistry;
 import net.impactdev.pixelmonbridge.data.factory.JArray;
 import net.impactdev.pixelmonbridge.data.factory.JElement;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
@@ -22,6 +25,7 @@ import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.impactdev.pixelmonbridge.utils.PrettyPrinter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
@@ -38,8 +42,7 @@ import java.util.stream.Collectors;
 public interface DataManager<P> {
 
     /**
-     * Serializes a Pokemon to representable JSON. When the processs has completed,
-     * implementers of this call are expected to clear the contents of {@link #PARENTS}.
+     * Serializes a Pokemon to representable JSON.
      *
      * @param pokemon The pokemon we are serializing
      * @return A JObject representing the JSON data of the pokemon
@@ -54,8 +57,6 @@ public interface DataManager<P> {
      */
     P deserialize(JsonObject json);
 
-    Map<String, JObject> PARENTS = Maps.newHashMap();
-
     /**
      * Recursively pieces together a Query into a writable JObject, with direction of writing
      * primarily focused on the last index of a Query.
@@ -63,24 +64,27 @@ public interface DataManager<P> {
      * This function will read a Query from the top level all the way to its final layer, in which
      * we will then write the passed in object to the last component of the Query.
      *
+     * @param contextKey Represents the key we will use to locate context for this write session
      * @param parent The primary focus of the JSON structure we are writing to
      * @param query The current query representing how far we are in the intended structure
      * @param toWrite The value we wish to write to the index marked by the Query
      * @return The JObject representing the final result of the JSON output
      */
-    default JObject writeToQuery(JObject parent, Query query, Object toWrite) {
+    default JObject writeToQuery(UUID contextKey, JObject parent, Query query, Object toWrite) {
         if(query.getParts().size() <= 1) {
             write(parent, query.getParts().get(query.getParts().size() - 1), toWrite);
             return parent;
         }
 
         String key = query.getParts().get(0);
-        if(PARENTS.containsKey(key)) {
-            parent.add(key, this.writeToQuery(PARENTS.get(key), query.pop(), toWrite));
+        Context context = ContextualRegistry.get(contextKey);
+
+        if(context.get().containsKey(key)) {
+            parent.add(key, this.writeToQuery(contextKey, context.get().get(key), query.pop(), toWrite));
         } else {
             JObject working = new JObject();
-            parent.add(key, this.writeToQuery(working, query.pop(), toWrite));
-            PARENTS.put(key, working);
+            parent.add(key, this.writeToQuery(contextKey, working, query.pop(), toWrite));
+            context.get().put(key, working);
         }
 
         return parent;

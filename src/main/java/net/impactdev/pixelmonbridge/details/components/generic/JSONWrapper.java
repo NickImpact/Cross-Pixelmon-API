@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.data.Writable;
 import net.impactdev.pixelmonbridge.data.common.BaseDataManager;
+import net.impactdev.pixelmonbridge.data.context.ContextualRegistry;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 public class JSONWrapper extends BaseDataManager<JSONWrapper> implements Writable<JObject> {
 
@@ -53,14 +55,17 @@ public class JSONWrapper extends BaseDataManager<JSONWrapper> implements Writabl
     public JObject serialize(JSONWrapper wrapper) {
         JObject out = new JObject();
 
+        UUID key = UUID.randomUUID();
+        ContextualRegistry.register(key);
+
         for(Map.Entry<SpecKey<?>, Object> data : wrapper.data.entrySet()) {
             Query query = data.getKey().getQuery();
             Object value = data.getValue();
 
-            this.writeToQuery(out, query, value);
+            this.writeToQuery(key, out, query, value);
         }
 
-        PARENTS.clear();
+        ContextualRegistry.complete(key);
 
         return out;
     }

@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.data.common.BaseDataManager;
+import net.impactdev.pixelmonbridge.data.context.ContextualRegistry;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
@@ -13,6 +14,7 @@ import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
 
@@ -25,14 +27,17 @@ public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
     public JObject serialize(ReforgedPokemon pokemon) {
         JObject out = new JObject();
 
+        UUID key = UUID.randomUUID();
+        ContextualRegistry.register(key);
+
         for(Map.Entry<SpecKey<?>, Object> data : pokemon.getAllDetails().entrySet()) {
             Query query = data.getKey().getQuery();
             Object value = data.getValue();
 
-            this.writeToQuery(out, query, value);
+            this.writeToQuery(key, out, query, value);
         }
 
-        PARENTS.clear();
+        ContextualRegistry.complete(key);
 
         return out;
     }
