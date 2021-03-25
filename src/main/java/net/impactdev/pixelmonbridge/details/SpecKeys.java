@@ -214,6 +214,12 @@ public class SpecKeys {
             .query(Query.of("extra", "meloetta", "activations"))
             .build();
 
+    public static final SpecKey<Boolean> CAN_GMAX = SpecKey.builder()
+            .type(BOOLEAN_TYPE)
+            .name("GMax - Allowed State")
+            .query(Query.of("can-gmax"))
+            .build();
+
     // -------------------------------------------------------------------------------------
     //
     //  Stats

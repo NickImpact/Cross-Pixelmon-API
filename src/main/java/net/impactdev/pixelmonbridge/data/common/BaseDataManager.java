@@ -134,6 +134,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.MELTAN_ORES_SMELTED, JsonElement::getAsInt);
         customReaders.put(SpecKeys.MAREEP_WOOL_GROWTH, JsonElement::getAsByte);
         customReaders.put(SpecKeys.MINIOR_COLOR, JsonElement::getAsByte);
+        customReaders.put(SpecKeys.LIGHT_TRIO_WORMHOLES, JsonElement::getAsInt);
         customReaders.put(SpecKeys.HP, JsonElement::getAsInt);
         customReaders.put(SpecKeys.EV_HP, JsonElement::getAsInt);
         customReaders.put(SpecKeys.EV_ATK, JsonElement::getAsInt);
@@ -154,6 +155,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.HYPER_SPECIAL_DEFENCE, JsonElement::getAsBoolean);
         customReaders.put(SpecKeys.HYPER_SPEED, JsonElement::getAsBoolean);
         customReaders.put(SpecKeys.DYNAMAX_LEVEL, JsonElement::getAsInt);
+        customReaders.put(SpecKeys.CAN_GMAX, JsonElement::getAsBoolean);
     }
 
     <T> T read(SpecKey<?> key, Supplier<JsonElement> supplier, Function<JsonElement, T> mapper) {

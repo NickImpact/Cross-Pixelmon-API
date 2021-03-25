@@ -173,6 +173,7 @@ public class GenerationsSpecKeyWriter {
         writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.SpecialAttack)));
         writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.SpecialDefence)));
         writers.put(SpecKeys.HYPER_SPEED, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.Speed)));
+        writers.put(SpecKeys.CAN_GMAX, (p, v) -> p.setGmaxFactor((boolean) v));
 
         writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
             // If this key is present, it indicates that we managed to read in Reforged Data
@@ -203,9 +204,9 @@ public class GenerationsSpecKeyWriter {
                 stats.numWormholes = data;
                 p.extraStats = stats;
             });
+            wrapper.get(SpecKeys.CAN_GMAX).ifPresent(p::setGmaxFactor);
         });
     }
-
 
     public static void write(SpecKey<?> key, EntityPixelmon target, Object value) {
         if(writers.containsKey(key)) {
