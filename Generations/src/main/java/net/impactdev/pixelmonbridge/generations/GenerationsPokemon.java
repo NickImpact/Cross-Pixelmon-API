@@ -125,6 +125,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.GROWTH, pokemon.getGrowth().index);
         result.offer(SpecKeys.NICKNAME, pokemon.getNickname());
         result.offer(SpecKeys.TEXTURE, pokemon.getCustomTexture());
+        result.offer(SpecKeys.SPECIAL_TEXTURE, pokemon.getSpecialTextureIndex());
 
         if(!pokemon.originalTrainerUUID.equals("")) {
             result.offer(SpecKeys.TRAINER, new Trainer(UUID.fromString(pokemon.originalTrainerUUID), pokemon.originalTrainer));

@@ -61,6 +61,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.GROWTH, JsonElement::getAsInt);
         customReaders.put(SpecKeys.NICKNAME, JsonElement::getAsString);
         customReaders.put(SpecKeys.TEXTURE, JsonElement::getAsString);
+        customReaders.put(SpecKeys.SPECIAL_TEXTURE, JsonElement::getAsInt);
         customReaders.put(SpecKeys.POKEBALL, JsonElement::getAsInt);
         customReaders.put(SpecKeys.TRAINER, data -> new Trainer(
                 read(SpecKeys.TRAINER, () -> data.getAsJsonObject().get("uuid"), x -> UUID.fromString(x.getAsString())),

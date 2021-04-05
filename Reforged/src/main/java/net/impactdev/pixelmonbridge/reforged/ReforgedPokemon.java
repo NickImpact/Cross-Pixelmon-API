@@ -48,7 +48,8 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
     private final ImmutableList<SpecKey<?>> UNSUPPORTED = ImmutableList.copyOf(Lists.newArrayList(
             SpecKeys.LIGHT_TRIO_WORMHOLES,
             SpecKeys.MELOETTA_ACTIVATIONS,
-            SpecKeys.CAN_GMAX
+            SpecKeys.CAN_GMAX,
+            SpecKeys.SPECIAL_TEXTURE
     ));
 
     private final Map<SpecKey<?>, Object> data = Maps.newTreeMap((k1, k2) -> {

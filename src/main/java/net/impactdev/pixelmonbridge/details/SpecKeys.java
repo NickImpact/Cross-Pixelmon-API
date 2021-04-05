@@ -100,6 +100,13 @@ public class SpecKeys {
             .query(Query.of("texture"))
             .build();
 
+    /** Generations specific texture key (Reforged removed this) */
+    public static final SpecKey<Integer> SPECIAL_TEXTURE = SpecKey.builder()
+            .type(INT_TYPE)
+            .name("Special Texture")
+            .query(Query.of("special-texture"))
+            .build();
+
     public static final SpecKey<Integer> POKEBALL = SpecKey.builder()
             .type(INT_TYPE)
             .name("Pokeball")

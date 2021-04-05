@@ -10,6 +10,7 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioS
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
+import com.pixelmongenerations.common.entity.pixelmon.textures.IEnumSpecialTexture;
 import com.pixelmongenerations.core.enums.EnumGrowth;
 import com.pixelmongenerations.core.enums.EnumNature;
 import com.pixelmongenerations.core.enums.EnumSpecies;
@@ -83,6 +84,7 @@ public class GenerationsSpecKeyWriter {
         });
         writers.put(SpecKeys.NICKNAME, (p, v) -> p.setNickname((String) v));
         writers.put(SpecKeys.TEXTURE, (p, v) -> p.setCustomSpecialTexture((String) v));
+        writers.put(SpecKeys.SPECIAL_TEXTURE, (p, v) -> p.setSpecialTexture((int) v));
         writers.put(SpecKeys.POKEBALL, (p, v) -> {
             int ordinal = (int) v;
             if(EnumPokeball.values().length <= ordinal || ordinal < 0) {
