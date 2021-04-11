@@ -29,6 +29,7 @@ import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.impactdev.pixelmonbridge.reforged.ReforgedPokemon;
 import net.minecraft.nbt.NBTTagCompound;
 
 import java.lang.reflect.Field;
@@ -156,6 +157,11 @@ public class ReforgedSpecKeyWriter {
                 e.printStackTrace();
             }
         });
+
+        writers.put(SpecKeys.EMBEDDED_POKEMON, (p, v) -> {
+            p.getPersistentData().setTag("FusedPokemon", ((List<ReforgedPokemon>) v).get(0).getOrCreate().writeToNBT(new NBTTagCompound()));
+        });
+
         writers.put(SpecKeys.HELD_ITEM, (p, v) -> {
             ItemStackWrapper wrapper = (ItemStackWrapper) v;
             p.setHeldItem(wrapper.getItem());

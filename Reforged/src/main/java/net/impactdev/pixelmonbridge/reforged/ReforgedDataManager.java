@@ -1,6 +1,7 @@
 package net.impactdev.pixelmonbridge.reforged;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.impactdev.pixelmonbridge.data.common.BaseDataManager;
@@ -20,6 +21,16 @@ public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
 
     public ReforgedDataManager() {
         super();
+        this.customReaders.put(SpecKeys.EMBEDDED_POKEMON, data -> {
+            List<ReforgedPokemon> results = Lists.newArrayList();
+            JsonArray array = data.getAsJsonArray();
+            for(JsonElement element : array) {
+                JsonObject json = element.getAsJsonObject();
+                results.add(this.deserialize(json));
+            }
+
+            return results;
+        });
         this.customReaders.put(SpecKeys.REFORGED_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
     }
 

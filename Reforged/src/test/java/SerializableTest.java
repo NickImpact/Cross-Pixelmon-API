@@ -1,3 +1,4 @@
+import com.google.common.collect.Lists;
 import com.google.gson.GsonBuilder;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
@@ -27,15 +28,13 @@ public class SerializableTest {
         pokemon.offer(SpecKeys.TRAINER, new Trainer(UUID.randomUUID(), "NickImpact"));
         pokemon.offer(SpecKeys.LEVEL, new Level(5, 60, true));
 
+        ReforgedPokemon test = new ReforgedPokemon();
+        test.offer(SpecKeys.FORM, 1);
+        pokemon.offer(SpecKeys.EMBEDDED_POKEMON, Lists.newArrayList(test));
+
         ReforgedDataManager data = new ReforgedDataManager();
         JObject json = data.serialize(pokemon);
         System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(json.toJson()));
-
-        ReforgedPokemon test = new ReforgedPokemon();
-        test.offer(SpecKeys.IV_ATK, 16);
-
-        JObject test2 = data.serialize(test);
-        System.out.println(new GsonBuilder().setPrettyPrinting().create().toJson(test2.toJson()));
 
     }
 

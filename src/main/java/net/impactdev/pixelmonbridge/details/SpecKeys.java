@@ -2,6 +2,7 @@ package net.impactdev.pixelmonbridge.details;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.reflect.TypeToken;
+import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
@@ -171,6 +172,13 @@ public class SpecKeys {
             .type(INT_TYPE)
             .name("Dynamax Level")
             .query(Query.of("dynamax-level"))
+            .build();
+
+    public static final SpecKey<List<ImpactDevPokemon<?>>> EMBEDDED_POKEMON = SpecKey.builder()
+            .type(new TypeToken<List<ImpactDevPokemon<?>>>(){})
+            .name("Embedded Pokemon")
+            .priority(-1)
+            .query(Query.of("embedded-pokemon"))
             .build();
 
     // -------------------------------------------------------------------------------------

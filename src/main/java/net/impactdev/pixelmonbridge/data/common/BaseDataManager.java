@@ -121,6 +121,20 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
                 throw new RuntimeException(e);
             }
         });
+        customReaders.put(SpecKeys.EMBEDDED_POKEMON, data -> Lists.newArrayList(data.getAsJsonArray())
+                .stream()
+                .map(JsonElement::getAsJsonObject)
+                .map(obj -> {
+                    try {
+                        return new NBTWrapper(
+                                JsonToNBT.getTagFromJson(obj.getAsString())
+                        );
+                    } catch (NBTException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList())
+        );
         customReaders.put(SpecKeys.HELD_ITEM, data -> {
             try {
                 ItemStack item = new ItemStack(JsonToNBT.getTagFromJson(read(SpecKeys.HELD_ITEM, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString)));

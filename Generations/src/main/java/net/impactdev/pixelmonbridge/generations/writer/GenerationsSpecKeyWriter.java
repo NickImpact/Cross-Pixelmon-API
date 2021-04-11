@@ -21,8 +21,13 @@ import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.*;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
+import net.impactdev.pixelmonbridge.generations.GenerationsPokemon;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -154,6 +159,20 @@ public class GenerationsSpecKeyWriter {
             }
 
             ((MeloettaStats) p.extraStats).abundantActivations = (int) v;
+        });
+        writers.put(SpecKeys.EXTRA_DATA, (p, v) -> {
+            NBTTagCompound nbt = p.writeToNBT(new NBTTagCompound());
+            NBTWrapper wrapper = (NBTWrapper) v;
+
+            for(String key : wrapper.getNBT().getKeySet()) {
+                nbt.setTag(key, wrapper.getNBT().getTag(key));
+            }
+        });
+        writers.put(SpecKeys.EMBEDDED_POKEMON, (p, v) -> {
+            List<GenerationsPokemon> embeds = ((List<GenerationsPokemon>) v);
+            embeds.stream()
+                    .map(gp -> gp.getOrCreate().writeToNBT(new NBTTagCompound()))
+                    .forEach(nbt -> p.embeddedPokemon.add(nbt));
         });
         writers.put(SpecKeys.HP, (p, v) -> p.setHealth((int) v));
         writers.put(SpecKeys.EV_HP, (p, v) -> p.stats.EVs.HP = (int) v);

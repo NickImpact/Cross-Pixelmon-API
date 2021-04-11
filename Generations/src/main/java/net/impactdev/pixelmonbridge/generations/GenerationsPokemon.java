@@ -14,8 +14,10 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioS
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
+import com.pixelmongenerations.core.config.PixelmonEntityList;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
@@ -23,15 +25,19 @@ import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.*;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.generations.writer.GenerationsSpecKeyWriter;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
 
@@ -187,6 +193,17 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.HYPER_SPEED, pokemon.stats.isBottleCapIV(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDataManager().get(EntityPixelmon.dwDynamaxLevel));
 
+        result.calculateExtraNBT(pokemon).ifPresent(nbt -> {
+            result.offer(SpecKeys.EXTRA_DATA, new NBTWrapper(nbt));
+        });
+
+        if(!pokemon.embeddedPokemon.isEmpty()) {
+            List<ImpactDevPokemon<?>> embeds = pokemon.embeddedPokemon.stream()
+                    .map(nbt -> GenerationsPokemon.from((EntityPixelmon) PixelmonEntityList.createEntityFromNBT(nbt, pokemon.world)))
+                    .collect(Collectors.toList());
+            result.offer(SpecKeys.EMBEDDED_POKEMON, embeds);
+        }
+
         Moves moves = new Moves();
         for(Attack attack : pokemon.getMoveset().attacks) {
             if(attack == null) {
@@ -247,6 +264,92 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
             this.data.put(key, value);
         } else {
             this.data.put(SpecKeys.REFORGED_DATA, this.get(SpecKeys.REFORGED_DATA).orElseGet(JSONWrapper::new).offerUnsafe(key, value));
+        }
+    }
+
+    private Optional<NBTTagCompound> calculateExtraNBT(EntityPixelmon pokemon) {
+        if(!populated) {
+            pokemon.getNBTTags(tags);
+            populated = true;
+        }
+
+        List<String> extra = Lists.newArrayList();
+        NBTTagCompound nbt = pokemon.writeToNBT(new NBTTagCompound());
+        for(String key : nbt.getKeySet()) {
+            if(!tags.containsKey(key)) {
+                extra.add(key);
+            }
+        }
+
+        if(extra.isEmpty()) {
+            return Optional.empty();
+        }
+
+        NBTTagCompound result = new NBTTagCompound();
+        for(String key : extra) {
+            result.setTag(key, nbt.getTag(key));
+        }
+
+        return Optional.of(result);
+    }
+
+    @Override
+    public JObject serialize() {
+        GenerationsDataManager manager = new GenerationsDataManager();
+        return manager.serialize(this);
+    }
+
+    private static boolean populated;
+    @SuppressWarnings("rawtypes")
+    private static HashMap<String, Class> tags = new HashMap<>();
+    private static List<String> ignoreNBTTagList = Lists.newArrayList(
+            "embeddedPokemon",
+            "HurtByTimestamp",
+            "ForgeData",
+            "Sitting",
+            "Attributes",
+            "Invulnerable",
+            "FallFlying",
+            "ForcedAge",
+            "AbsorptionAmount",
+            "PortalCooldown",
+            "IsInBall",
+            "FallDistance",
+            "transform",
+            "InLove",
+            "DeathTime",
+            "HandDropChances",
+            "PersistenceRequired",
+            "EggMoves",
+            "Age",
+            "Motion",
+            "Leashed",
+            "Aggression",
+            "UUIDLeast",
+            "UUIDMost",
+            "LeftHanded",
+            "Air",
+            "OnGround",
+            "Dimension",
+            "gmaxfactor",
+            "Rotation",
+            "UpdateBlocked",
+            "HandItems",
+            "ArmorDropChances",
+            "OwnerUUID",
+            "Pos",
+            "Fire",
+            "ArmorItems",
+            "CanPickupLoot",
+            "HurtTime",
+            "pixelmonOwnerUUIDLeast",
+            "pixelmonOwnerUUIDMost",
+            "CanPickupLoot"
+    );
+
+    static {
+        for(String key : ignoreNBTTagList) {
+            tags.put(key, Void.class);
         }
     }
 }

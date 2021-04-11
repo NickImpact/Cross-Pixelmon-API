@@ -1,8 +1,11 @@
 package net.impactdev.pixelmonbridge.generations;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pixelmongenerations.common.entity.pixelmon.EntityPixelmon;
+import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.data.common.BaseDataManager;
 import net.impactdev.pixelmonbridge.data.context.ContextualRegistry;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
@@ -22,6 +25,17 @@ import java.util.function.Supplier;
 public class GenerationsDataManager extends BaseDataManager<GenerationsPokemon> {
 
     public GenerationsDataManager() {
+        super();
+        this.customReaders.put(SpecKeys.EMBEDDED_POKEMON, data -> {
+            List<GenerationsPokemon> results = Lists.newArrayList();
+            JsonArray array = data.getAsJsonArray();
+            for(JsonElement element : array) {
+                JsonObject json = element.getAsJsonObject();
+                results.add(this.deserialize(json));
+            }
+
+            return results;
+        });
         this.customReaders.put(SpecKeys.GENERATIONS_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
     }
 

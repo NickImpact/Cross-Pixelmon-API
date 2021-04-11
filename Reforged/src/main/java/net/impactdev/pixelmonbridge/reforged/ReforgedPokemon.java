@@ -18,6 +18,8 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MiniorStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStats;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
+import net.impactdev.pixelmonbridge.data.Writable;
+import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
@@ -163,7 +165,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         }
 
         result.offer(SpecKeys.RELEARNABLE_MOVES, pokemon.getRelearnableMoves());
-        result.offer(SpecKeys.EXTRA_DATA, new NBTWrapper(pokemon.getPersistentData()));
+        result.offer(SpecKeys.EXTRA_DATA, result.extraData(pokemon));
         result.offer(SpecKeys.HELD_ITEM, new ItemStackWrapper(pokemon.getHeldItem()));
         if(pokemon.getStatus() != null) {
             result.offer(SpecKeys.STATUS, pokemon.getStatus().type.ordinal());
@@ -201,6 +203,9 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialDefence));
         result.offer(SpecKeys.HYPER_SPEED, pokemon.getStats().ivs.isHyperTrained(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDynamaxLevel());
+        if(pokemon.getPersistentData().hasKey("FusedPokemon")) {
+            result.offer(SpecKeys.EMBEDDED_POKEMON, Lists.newArrayList(result.getEmbeddedPokemon(pokemon)));
+        }
 
         NBTTagCompound nbt = new NBTTagCompound();
         pokemon.writeToNBT(nbt);
@@ -262,4 +267,20 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         }
     }
 
+    private NBTWrapper extraData(Pokemon pokemon) {
+        NBTTagCompound nbt = pokemon.getPersistentData().copy();
+        nbt.removeTag("FusedPokemon");
+        return new NBTWrapper(nbt);
+    }
+
+    private ReforgedPokemon getEmbeddedPokemon(Pokemon pokemon) {
+        NBTTagCompound nbt = pokemon.getPersistentData().getCompoundTag("FusedPokemon");
+        return ReforgedPokemon.from(Pixelmon.pokemonFactory.create(nbt));
+    }
+
+    @Override
+    public JObject serialize() {
+        ReforgedDataManager manager = new ReforgedDataManager();
+        return manager.serialize(this);
+    }
 }

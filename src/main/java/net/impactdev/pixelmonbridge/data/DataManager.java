@@ -3,6 +3,7 @@ package net.impactdev.pixelmonbridge.data;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -110,6 +111,8 @@ public interface DataManager<P> {
                 writer.add(key, ((Writable<?>) value).serialize());
             } else if(value instanceof UUID) {
                 writer.add(key, ((UUID) value).toString());
+            } else if(value instanceof ImpactDevPokemon) {
+                writer.add(key, ((ImpactDevPokemon) value).serialize());
             } else {
                 throw new IllegalArgumentException("Unable to translate object to JSON (" + key + ":" + value + ")");
             }
@@ -124,6 +127,8 @@ public interface DataManager<P> {
                 writer.add(toArray((Iterable<?>) value));
             } else if(value instanceof Map) {
                 writer.add(toMap((Map<?, ?>) value));
+            }else if(value instanceof ImpactDevPokemon) {
+                writer.add(((ImpactDevPokemon) value).serialize());
             } else {
                 throw new IllegalArgumentException("Unable to translate object to JSON: " + value);
             }
