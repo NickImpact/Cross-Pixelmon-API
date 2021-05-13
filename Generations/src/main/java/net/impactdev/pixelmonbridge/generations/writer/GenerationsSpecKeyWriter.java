@@ -10,8 +10,8 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioS
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
-import com.pixelmongenerations.common.entity.pixelmon.textures.IEnumSpecialTexture;
 import com.pixelmongenerations.core.enums.EnumGrowth;
+import com.pixelmongenerations.core.enums.EnumMark;
 import com.pixelmongenerations.core.enums.EnumNature;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import com.pixelmongenerations.core.enums.items.EnumPokeball;
@@ -23,9 +23,7 @@ import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.generations.GenerationsPokemon;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 
 import java.util.List;
 import java.util.Map;
@@ -195,6 +193,12 @@ public class GenerationsSpecKeyWriter {
         writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.SpecialDefence)));
         writers.put(SpecKeys.HYPER_SPEED, (p, v) -> actor((boolean) v, () -> p.stats.addBottleCapIV(StatsType.Speed)));
         writers.put(SpecKeys.CAN_GMAX, (p, v) -> p.setGmaxFactor((boolean) v));
+        writers.put(SpecKeys.MARKS, (p, v) -> {
+            List<Marking> markings = (List<Marking>) v;
+            if(!markings.isEmpty()) {
+                p.setMark(EnumMark.values()[markings.get(0).getMark().getIndexes().get(PixelmonSource.Generations)]);
+            }
+        });
 
         writers.put(SpecKeys.REFORGED_DATA, (p, v) -> {
             // If this key is present, it indicates that we managed to read in Reforged Data
@@ -239,5 +243,9 @@ public class GenerationsSpecKeyWriter {
         if(value) {
             consumer.run();
         }
+    }
+
+    public static <T> void test(SpecKey<T> key, BiConsumer<EntityPixelmon, T> consumer) {
+        writers.put(key, (BiConsumer<EntityPixelmon, Object>) consumer);
     }
 }

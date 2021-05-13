@@ -13,6 +13,7 @@ import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
+import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
@@ -23,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -171,6 +173,23 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.HYPER_SPEED, JsonElement::getAsBoolean);
         customReaders.put(SpecKeys.DYNAMAX_LEVEL, JsonElement::getAsInt);
         customReaders.put(SpecKeys.CAN_GMAX, JsonElement::getAsBoolean);
+        this.register(SpecKeys.MARKS, json -> {
+            JsonArray array = json.getAsJsonArray();
+            List<Marking> markings = Lists.newArrayList();
+            for(JsonElement element : array) {
+                JsonObject data = element.getAsJsonObject();
+                PixelmonSource source = read(SpecKeys.MARKS, () -> data.get("source"), s -> PixelmonSource.valueOf(s.getAsString()));
+                int ordinal = read(SpecKeys.MARKS, () -> data.get("ordinal"), JsonElement::getAsInt);
+
+                Marking.createFor(source, ordinal).ifPresent(markings::add);
+            }
+
+            return markings;
+        });
+    }
+
+    <T> void register(SpecKey<T> key, Reader<T> reader) {
+        customReaders.put(key, reader);
     }
 
     <T> T read(SpecKey<?> key, Supplier<JsonElement> supplier, Function<JsonElement, T> mapper) {

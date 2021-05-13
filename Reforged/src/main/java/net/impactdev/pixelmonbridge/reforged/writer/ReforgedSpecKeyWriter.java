@@ -14,6 +14,7 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStat
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
 import com.pixelmonmod.pixelmon.enums.EnumNature;
 import com.pixelmonmod.pixelmon.enums.EnumPokerusType;
+import com.pixelmonmod.pixelmon.enums.EnumRibbonType;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import com.pixelmonmod.pixelmon.enums.items.EnumPokeballs;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
@@ -22,6 +23,7 @@ import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
+import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
@@ -202,24 +204,33 @@ public class ReforgedSpecKeyWriter {
             ((MiniorStats) p.getExtraStats()).color = (byte) v;
         });
         writers.put(SpecKeys.HP, (p, v) -> p.setHealth((int) v));
-        writers.put(SpecKeys.EV_HP, (p, v) -> p.getStats().evs.hp = (int) v);
-        writers.put(SpecKeys.EV_ATK, (p, v) -> p.getStats().evs.attack = (int) v);
-        writers.put(SpecKeys.EV_DEF, (p, v) -> p.getStats().evs.defence = (int) v);
-        writers.put(SpecKeys.EV_SPATK, (p, v) -> p.getStats().evs.specialAttack = (int) v);
-        writers.put(SpecKeys.EV_SPDEF, (p, v) -> p.getStats().evs.specialDefence = (int) v);
-        writers.put(SpecKeys.EV_SPEED, (p, v) -> p.getStats().evs.speed = (int) v);
-        writers.put(SpecKeys.IV_HP, (p, v) -> p.getStats().ivs.hp = (int) v);
-        writers.put(SpecKeys.IV_ATK, (p, v) -> p.getStats().ivs.attack = (int) v);
-        writers.put(SpecKeys.IV_DEF, (p, v) -> p.getStats().ivs.defence = (int) v);
-        writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().ivs.specialAttack = (int) v);
-        writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().ivs.specialDefence = (int) v);
-        writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().ivs.speed = (int) v);
+        writers.put(SpecKeys.EV_HP, (p, v) -> p.getStats().evs.setStat(StatsType.HP, (int) v));
+        writers.put(SpecKeys.EV_ATK, (p, v) -> p.getStats().evs.setStat(StatsType.Attack, (int) v));
+        writers.put(SpecKeys.EV_DEF, (p, v) -> p.getStats().evs.setStat(StatsType.Defence, (int) v));
+        writers.put(SpecKeys.EV_SPATK, (p, v) -> p.getStats().evs.setStat(StatsType.SpecialAttack, (int) v));
+        writers.put(SpecKeys.EV_SPDEF, (p, v) -> p.getStats().evs.setStat(StatsType.SpecialDefence, (int) v));
+        writers.put(SpecKeys.EV_SPEED, (p, v) -> p.getStats().evs.setStat(StatsType.Speed, (int) v));
+        writers.put(SpecKeys.IV_HP, (p, v) -> p.getStats().ivs.setStat(StatsType.HP, (int) v));
+        writers.put(SpecKeys.IV_ATK, (p, v) -> p.getStats().ivs.setStat(StatsType.Attack, (int) v));
+        writers.put(SpecKeys.IV_DEF, (p, v) -> p.getStats().ivs.setStat(StatsType.Defence, (int) v));
+        writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().ivs.setStat(StatsType.SpecialAttack, (int) v));
+        writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().ivs.setStat(StatsType.SpecialDefence, (int) v));
+        writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().ivs.setStat(StatsType.Speed, (int) v));
         writers.put(SpecKeys.HYPER_HP, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.HP, (boolean) v));
         writers.put(SpecKeys.HYPER_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Attack, (boolean) v));
         writers.put(SpecKeys.HYPER_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Defence, (boolean) v));
         writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialAttack, (boolean) v));
         writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialDefence, (boolean) v));
         writers.put(SpecKeys.HYPER_SPEED, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Speed, (boolean) v));
+        writers.put(SpecKeys.MARKS, (p, v) -> {
+            List<Marking> markings = (List<Marking>) v;
+            for(Marking marking : markings) {
+                p.getRibbons().add(EnumRibbonType.values()[marking.getMark().getIndexes().get(PixelmonSource.Reforged)]);
+            }
+        });
+        writers.put(SpecKeys.RIBBONS, (p, v) -> {
+
+        });
 
         writers.put(SpecKeys.DYNAMAX_LEVEL, (p, v) -> p.setDynamaxLevel((int) v));
 

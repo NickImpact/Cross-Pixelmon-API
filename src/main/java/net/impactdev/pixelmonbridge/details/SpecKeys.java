@@ -6,6 +6,7 @@ import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
+import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
@@ -179,6 +180,18 @@ public class SpecKeys {
             .name("Embedded Pokemon")
             .priority(-1)
             .query(Query.of("embedded-pokemon"))
+            .build();
+
+    public static final SpecKey<List<Marking>> MARKS = SpecKey.builder()
+            .type(new TypeToken<List<Marking>>(){})
+            .name("Marks")
+            .query(Query.of("marks"))
+            .build();
+
+    public static final SpecKey<List<Integer>> RIBBONS = SpecKey.builder()
+            .type(new TypeToken<List<Integer>>(){})
+            .name("Ribbons")
+            .query(Query.of("ribbons"))
             .build();
 
     // -------------------------------------------------------------------------------------

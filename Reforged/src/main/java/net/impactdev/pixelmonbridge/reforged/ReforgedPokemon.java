@@ -9,6 +9,7 @@ import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.pokemon.EnumInitializeCategory;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
+import com.pixelmonmod.pixelmon.battles.status.NoStatus;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
@@ -16,9 +17,9 @@ import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MiniorStats;
 import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStats;
+import com.pixelmonmod.pixelmon.enums.EnumRibbonType;
 import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
-import net.impactdev.pixelmonbridge.data.Writable;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
@@ -27,6 +28,7 @@ import net.impactdev.pixelmonbridge.details.SpecKeys;
 import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
+import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
@@ -50,7 +52,6 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
     private final ImmutableList<SpecKey<?>> UNSUPPORTED = ImmutableList.copyOf(Lists.newArrayList(
             SpecKeys.LIGHT_TRIO_WORMHOLES,
             SpecKeys.MELOETTA_ACTIVATIONS,
-            SpecKeys.CAN_GMAX,
             SpecKeys.SPECIAL_TEXTURE
     ));
 
@@ -167,7 +168,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.RELEARNABLE_MOVES, pokemon.getRelearnableMoves());
         result.offer(SpecKeys.EXTRA_DATA, result.extraData(pokemon));
         result.offer(SpecKeys.HELD_ITEM, new ItemStackWrapper(pokemon.getHeldItem()));
-        if(pokemon.getStatus() != null) {
+        if(!pokemon.getStatus().equals(NoStatus.noStatus)) {
             result.offer(SpecKeys.STATUS, pokemon.getStatus().type.ordinal());
         }
 
@@ -184,18 +185,18 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         }
 
         result.offer(SpecKeys.HP, pokemon.getHealth());
-        result.offer(SpecKeys.EV_HP, pokemon.getStats().evs.hp);
-        result.offer(SpecKeys.EV_ATK, pokemon.getStats().evs.attack);
-        result.offer(SpecKeys.EV_DEF, pokemon.getStats().evs.defence);
-        result.offer(SpecKeys.EV_SPATK, pokemon.getStats().evs.specialAttack);
-        result.offer(SpecKeys.EV_SPDEF, pokemon.getStats().evs.specialDefence);
-        result.offer(SpecKeys.EV_SPEED, pokemon.getStats().evs.speed);
-        result.offer(SpecKeys.IV_HP, pokemon.getStats().ivs.hp);
-        result.offer(SpecKeys.IV_ATK, pokemon.getStats().ivs.attack);
-        result.offer(SpecKeys.IV_DEF, pokemon.getStats().ivs.defence);
-        result.offer(SpecKeys.IV_SPATK, pokemon.getStats().ivs.specialAttack);
-        result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().ivs.specialDefence);
-        result.offer(SpecKeys.IV_SPEED, pokemon.getStats().ivs.speed);
+        result.offer(SpecKeys.EV_HP, pokemon.getStats().evs.getStat(StatsType.HP));
+        result.offer(SpecKeys.EV_ATK, pokemon.getStats().evs.getStat(StatsType.Attack));
+        result.offer(SpecKeys.EV_DEF, pokemon.getStats().evs.getStat(StatsType.Defence));
+        result.offer(SpecKeys.EV_SPATK, pokemon.getStats().evs.getStat(StatsType.SpecialAttack));
+        result.offer(SpecKeys.EV_SPDEF, pokemon.getStats().evs.getStat(StatsType.SpecialDefence));
+        result.offer(SpecKeys.EV_SPEED, pokemon.getStats().evs.getStat(StatsType.Speed));
+        result.offer(SpecKeys.IV_HP, pokemon.getStats().ivs.getStat(StatsType.HP));
+        result.offer(SpecKeys.IV_ATK, pokemon.getStats().ivs.getStat(StatsType.Attack));
+        result.offer(SpecKeys.IV_DEF, pokemon.getStats().ivs.getStat(StatsType.Defence));
+        result.offer(SpecKeys.IV_SPATK, pokemon.getStats().ivs.getStat(StatsType.SpecialAttack));
+        result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().ivs.getStat(StatsType.SpecialDefence));
+        result.offer(SpecKeys.IV_SPEED, pokemon.getStats().ivs.getStat(StatsType.Speed));
         result.offer(SpecKeys.HYPER_HP, pokemon.getStats().ivs.isHyperTrained(StatsType.HP));
         result.offer(SpecKeys.HYPER_ATTACK, pokemon.getStats().ivs.isHyperTrained(StatsType.Attack));
         result.offer(SpecKeys.HYPER_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.Defence));
@@ -203,9 +204,23 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialDefence));
         result.offer(SpecKeys.HYPER_SPEED, pokemon.getStats().ivs.isHyperTrained(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDynamaxLevel());
+        result.offer(SpecKeys.CAN_GMAX, pokemon.canGigantamax());
         if(pokemon.getPersistentData().hasKey("FusedPokemon")) {
             result.offer(SpecKeys.EMBEDDED_POKEMON, Lists.newArrayList(result.getEmbeddedPokemon(pokemon)));
         }
+
+        List<Marking> marks = Lists.newArrayList();
+        List<Integer> ribbons = Lists.newArrayList();
+        for(EnumRibbonType entry : pokemon.getRibbons()) {
+            Marking.createFor(PixelmonSource.Reforged, entry.ordinal())
+                    .map(marks::add)
+                    .orElseGet(() -> {
+                        ribbons.add(entry.ordinal());
+                        return true;
+                    });
+        }
+        result.offer(SpecKeys.MARKS, marks);
+        result.offer(SpecKeys.RIBBONS, ribbons);
 
         NBTTagCompound nbt = new NBTTagCompound();
         pokemon.writeToNBT(nbt);

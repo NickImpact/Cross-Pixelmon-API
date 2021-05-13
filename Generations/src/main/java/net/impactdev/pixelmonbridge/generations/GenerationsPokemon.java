@@ -15,6 +15,7 @@ import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrio
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
 import com.pixelmongenerations.core.config.PixelmonEntityList;
+import com.pixelmongenerations.core.enums.EnumMark;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
@@ -27,7 +28,6 @@ import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.generations.writer.GenerationsSpecKeyWriter;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.FMLCommonHandler;
@@ -44,7 +44,8 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
     private final ImmutableList<SpecKey<?>> UNSUPPORTED = ImmutableList.copyOf(Lists.newArrayList(
             SpecKeys.MELTAN_ORES_SMELTED,
             SpecKeys.MAREEP_WOOL_GROWTH,
-            SpecKeys.MINIOR_COLOR
+            SpecKeys.MINIOR_COLOR,
+            SpecKeys.RIBBONS
     ));
 
     private final Map<SpecKey<?>, Object> data = Maps.newTreeMap((k1, k2) -> {
@@ -148,11 +149,11 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
             ));
         }
 
-        if(pokemon.pokerus > 0) {
+        if(pokemon.getPokeRus() > 0) {
             result.offer(SpecKeys.POKERUS, new Pokerus(
                     PixelmonSource.Generations,
-                    pokemon.pokerus,
-                    pokemon.pokerusTimer / 20, //conversion from ticks to seconds
+                    pokemon.getPokeRus(),
+                    pokemon.getPokeRusTimer() / 20, //conversion from ticks to seconds
                     true
             ));
         }
@@ -192,6 +193,11 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.stats.isBottleCapIV(StatsType.SpecialDefence));
         result.offer(SpecKeys.HYPER_SPEED, pokemon.stats.isBottleCapIV(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDataManager().get(EntityPixelmon.dwDynamaxLevel));
+
+        List<Marking> marks = Lists.newArrayList();
+        Marking.createFor(PixelmonSource.Generations, pokemon.getMark().ordinal())
+                .ifPresent(marks::add);
+        result.offer(SpecKeys.MARKS, marks);
 
         result.calculateExtraNBT(pokemon).ifPresent(nbt -> {
             result.offer(SpecKeys.EXTRA_DATA, new NBTWrapper(nbt));
