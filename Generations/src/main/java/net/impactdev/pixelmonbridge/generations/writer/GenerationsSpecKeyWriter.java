@@ -1,6 +1,5 @@
 package net.impactdev.pixelmonbridge.generations.writer;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.pixelmongenerations.common.battle.attacks.Attack;
 import com.pixelmongenerations.common.entity.pixelmon.EntityPixelmon;
@@ -33,10 +32,7 @@ public class GenerationsSpecKeyWriter {
 
     private static Map<SpecKey<?>, BiConsumer<EntityPixelmon, Object>> writers = Maps.newHashMap();
     static {
-        writers.put(SpecKeys.SPECIES, (p, v) -> {
-            Preconditions.checkArgument(EnumSpecies.hasPokemon((String) v), "Invalid species");
-            p.setName((String) v);
-        });
+        writers.put(SpecKeys.SPECIES, (p, v) -> p.setName((String) v));
         writers.put(SpecKeys.SHINY, (p, v) -> p.setShiny((boolean) v));
         writers.put(SpecKeys.FORM, (p, v) -> p.setForm((int) v));
         writers.put(SpecKeys.LEVEL, (p, v) -> {
@@ -103,6 +99,7 @@ public class GenerationsSpecKeyWriter {
         });
         writers.put(SpecKeys.EGG_INFO, (p, v) -> {
             EggInfo info = (EggInfo) v;
+            p.isEgg = true;
             p.eggCycles = info.getCycles();
 
             // Differ to NBT because Generations needs to catch up with their API

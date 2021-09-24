@@ -19,6 +19,7 @@ import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
+import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
@@ -149,6 +150,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.MEW_CLONES, JsonElement::getAsInt);
         customReaders.put(SpecKeys.LAKE_TRIO_ENCHANTS, JsonElement::getAsInt);
         customReaders.put(SpecKeys.MELTAN_ORES_SMELTED, JsonElement::getAsInt);
+        customReaders.put(SpecKeys.MELOETTA_ACTIVATIONS, JsonElement::getAsInt);
         customReaders.put(SpecKeys.MAREEP_WOOL_GROWTH, JsonElement::getAsByte);
         customReaders.put(SpecKeys.MINIOR_COLOR, JsonElement::getAsByte);
         customReaders.put(SpecKeys.LIGHT_TRIO_WORMHOLES, JsonElement::getAsInt);
@@ -186,6 +188,17 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
 
             return markings;
         });
+        this.register(SpecKeys.RIBBONS, json -> {
+            List<Integer> results = Lists.newArrayList();
+            JsonArray array = json.getAsJsonArray();
+            for(JsonElement element : array) {
+                results.add(read(SpecKeys.RIBBONS, () -> element, JsonElement::getAsInt));
+            }
+
+            return results;
+        });
+        this.register(SpecKeys.GENERATIONS_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
+        this.register(SpecKeys.REFORGED_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
     }
 
     <T> void register(SpecKey<T> key, Reader<T> reader) {

@@ -45,9 +45,15 @@ public class ReforgedSpecKeyWriter {
 
     private static Map<SpecKey<?>, BiConsumer<Pokemon, Object>> writers = Maps.newHashMap();
 
+    private static final Map<String, EnumSpecies> speciesMap = Maps.newHashMap();
+
     static {
+        for(EnumSpecies species : EnumSpecies.values()) {
+            speciesMap.put(species.name, species);
+        }
+
         writers.put(SpecKeys.ID, (p, v) -> p.setUUID((UUID) v));
-        writers.put(SpecKeys.SPECIES, (p, v) -> p.setSpecies(EnumSpecies.getFromNameAnyCase((String) v)));
+        writers.put(SpecKeys.SPECIES, (p, v) -> p.setSpecies(speciesMap.get((String) v)));
         writers.put(SpecKeys.SHINY, (p, v) -> p.setShiny((boolean) v));
         writers.put(SpecKeys.FORM, (p, v) -> p.setForm((int) v));
         writers.put(SpecKeys.LEVEL, (p, v) -> {
@@ -229,9 +235,12 @@ public class ReforgedSpecKeyWriter {
             }
         });
         writers.put(SpecKeys.RIBBONS, (p, v) -> {
-
+            List<Integer> ribbons = (List<Integer>) v;
+            for(int ribbon : ribbons) {
+                p.getRibbons().add(EnumRibbonType.values()[ribbon]);
+            }
         });
-
+        writers.put(SpecKeys.CAN_GMAX, (p, v) -> p.setGigantamaxFactor((boolean) v));
         writers.put(SpecKeys.DYNAMAX_LEVEL, (p, v) -> p.setDynamaxLevel((int) v));
 
         writers.put(SpecKeys.GENERATIONS_DATA, (p, v) -> {

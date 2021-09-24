@@ -9,13 +9,13 @@ import com.pixelmongenerations.common.battle.attacks.Attack;
 import com.pixelmongenerations.common.entity.pixelmon.EntityPixelmon;
 import com.pixelmongenerations.common.entity.pixelmon.stats.ExtraStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.Gender;
+import com.pixelmongenerations.common.entity.pixelmon.stats.Stats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.StatsType;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LakeTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.LightTrioStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MeloettaStats;
 import com.pixelmongenerations.common.entity.pixelmon.stats.extraStats.MewStats;
 import com.pixelmongenerations.core.config.PixelmonEntityList;
-import com.pixelmongenerations.core.enums.EnumMark;
 import com.pixelmongenerations.core.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
@@ -177,7 +177,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.EV_HP, pokemon.stats.EVs.HP);
         result.offer(SpecKeys.EV_ATK, pokemon.stats.EVs.Attack);
         result.offer(SpecKeys.EV_DEF, pokemon.stats.EVs.Defence);
-        result.offer(SpecKeys.EV_SPATK, pokemon.stats.SpecialAttack);
+        result.offer(SpecKeys.EV_SPATK, pokemon.stats.EVs.SpecialAttack);
         result.offer(SpecKeys.EV_SPDEF, pokemon.stats.EVs.SpecialDefence);
         result.offer(SpecKeys.EV_SPEED, pokemon.stats.EVs.Speed);
         result.offer(SpecKeys.IV_HP, pokemon.stats.IVs.HP);
@@ -193,6 +193,7 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
         result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.stats.isBottleCapIV(StatsType.SpecialDefence));
         result.offer(SpecKeys.HYPER_SPEED, pokemon.stats.isBottleCapIV(StatsType.Speed));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDataManager().get(EntityPixelmon.dwDynamaxLevel));
+        result.offer(SpecKeys.CAN_GMAX, pokemon.hasGmaxFactor());
 
         List<Marking> marks = Lists.newArrayList();
         Marking.createFor(PixelmonSource.Generations, pokemon.getMark().ordinal())
@@ -250,6 +251,8 @@ public class GenerationsPokemon implements ImpactDevPokemon<EntityPixelmon> {
             GenerationsSpecKeyWriter.write(key, pokemon, value);
         }
 
+        pokemon.updateStats();
+        GenerationsSpecKeyWriter.write(SpecKeys.HP, pokemon, this.data.get(SpecKeys.HP));
         return pokemon;
     }
 

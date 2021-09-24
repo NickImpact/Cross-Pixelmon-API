@@ -31,7 +31,6 @@ public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
 
             return results;
         });
-        this.customReaders.put(SpecKeys.REFORGED_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
     }
 
     @Override

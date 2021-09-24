@@ -127,7 +127,9 @@ public interface DataManager<P> {
                 writer.add(toArray((Iterable<?>) value));
             } else if(value instanceof Map) {
                 writer.add(toMap((Map<?, ?>) value));
-            }else if(value instanceof ImpactDevPokemon) {
+            } else if(value instanceof Writable) {
+                writer.add(((Writable<?>) value).serialize());
+            } else if(value instanceof ImpactDevPokemon) {
                 writer.add(((ImpactDevPokemon) value).serialize());
             } else {
                 throw new IllegalArgumentException("Unable to translate object to JSON: " + value);

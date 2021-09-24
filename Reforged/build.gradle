@@ -6,16 +6,19 @@ repositories {
     mavenCentral()
     ivy {
         url "https://download.nodecdn.net/containers"
-        layout "pattern", {
+        patternLayout {
             artifact "/[organisation]/[module]/release/[revision]/[ext]"
+        }
+        metadataSources {
+            artifact()
         }
     }
 }
 
 dependencies {
     compile project(":")
-    compileOnly 'reforged:server:8.2.0@Pixelmon-1.12.2-8.2.0-server.jar'
-    compileOnly 'com.google.code.gson:gson:2.8.0'
+    compileOnly 'reforged:server:8.3.0@Pixelmon-1.12.2-8.3.0-server.jar'
+    compileOnly 'com.google.code.gson:gson:2.8.8'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile 'com.google.code.gson:gson:2.8.0'
