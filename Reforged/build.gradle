@@ -1,6 +1,9 @@
 plugins {
     id 'java'
+    id 'maven'
 }
+
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -27,5 +30,27 @@ dependencies {
 
 tasks.withType(JavaCompile) {
     options.compilerArgs << "-Xlint:deprecation"
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "ImpactDev-Public"
+            url = "https://maven.impactdev.net/repository/development/"
+            credentials {
+                username System.getenv('NEXUS_USER')
+                password System.getenv('NEXUS_PW')
+            }
+        }
+    }
+
+    publications {
+        reforged(MavenPublication) {
+            from project.components.java
+            groupId project.group
+            artifactId "reforged"
+            version project.version
+        }
+    }
 }
 

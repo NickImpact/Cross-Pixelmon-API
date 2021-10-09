@@ -22,8 +22,6 @@ plugins {
 }
 
 apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'maven-publish'
-apply plugin: 'maven-publish-auth'
 
 group 'net.impactdev'
 version '1.0.3-SNAPSHOT'
@@ -81,44 +79,6 @@ allprojects {
         // copy everything else, thats not the mcmod.info
         from(sourceSets.main.resources.srcDirs) {
             exclude 'mcmod.info'
-        }
-    }
-
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "ImpactDev-Public"
-            url = "https://maven.impactdev.net/repository/development/"
-            credentials {
-                username System.getenv('NEXUS_USER')
-                password System.getenv('NEXUS_PW')
-            }
-        }
-    }
-
-    publications {
-        api(MavenPublication) {
-            def project = project(":")
-            from project.components.java
-            groupId project.group
-            artifactId "pixelmonbridge"
-            version project.version
-        }
-        reforged(MavenPublication) { publication ->
-            def project = project(":Reforged")
-            from project.components.java
-            groupId project.group
-            artifactId "reforged"
-            version project.version
-        }
-        generations(MavenPublication) { publication ->
-            def project = project(":Generations")
-            from project.components.java
-            groupId project.group
-            artifactId "generations"
-            version project.version
         }
     }
 }

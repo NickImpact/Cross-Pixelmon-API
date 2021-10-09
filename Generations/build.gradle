@@ -1,6 +1,9 @@
 plugins {
     id 'java'
+    id 'maven'
 }
+
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -16,3 +19,24 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+publishing {
+    repositories {
+        maven {
+            name = "ImpactDev-Public"
+            url = "https://maven.impactdev.net/repository/development/"
+            credentials {
+                username System.getenv('NEXUS_USER')
+                password System.getenv('NEXUS_PW')
+            }
+        }
+    }
+
+    publications {
+        generations(MavenPublication) {
+            from project.components.java
+            groupId project.group
+            artifactId "generations"
+            version project.version
+        }
+    }
+}
