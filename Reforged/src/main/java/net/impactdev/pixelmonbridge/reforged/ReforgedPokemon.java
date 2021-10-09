@@ -38,6 +38,7 @@ import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.reforged.writer.ReforgedSpecKeyWriter;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -129,6 +130,21 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.GROWTH, pokemon.getGrowth().index);
         result.offer(SpecKeys.NICKNAME, pokemon.getNickname());
         result.offer(SpecKeys.TEXTURE, pokemon.getCustomTexture());
+
+        Optional.ofNullable(pokemon.getCaughtBall())
+                .ifPresent(ball -> {
+                    result.offer(SpecKeys.POKEBALL, ball.ordinal());
+                });
+
+        // If a pokemon doesn't have an original trainer UUID, they shouldn't have an original trainer last known
+        // name. The only reason the case of no UUID, last known name present is due to a Reforged bug. To avoid
+        // user querying on this, with the potential to fail to even find a match, this will only add original
+        // trainer information IF AND ONLY IF the UUID is present.
+        Optional.ofNullable(pokemon.getOriginalTrainerUUID())
+                .ifPresent(id -> {
+                    result.offer(SpecKeys.TRAINER, new Trainer(id, pokemon.getOriginalTrainer()));
+                });
+
         if(pokemon.getOwnerPlayerUUID() != null) {
             result.offer(SpecKeys.POKEBALL, pokemon.getCaughtBall().ordinal());
             result.offer(SpecKeys.TRAINER, new Trainer(pokemon.getOriginalTrainerUUID(), pokemon.getOriginalTrainer()));
