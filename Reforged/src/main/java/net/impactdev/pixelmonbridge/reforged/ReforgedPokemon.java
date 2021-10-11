@@ -145,10 +145,6 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
                     result.offer(SpecKeys.TRAINER, new Trainer(id, pokemon.getOriginalTrainer()));
                 });
 
-        if(pokemon.getOwnerPlayerUUID() != null) {
-            result.offer(SpecKeys.POKEBALL, pokemon.getCaughtBall().ordinal());
-            result.offer(SpecKeys.TRAINER, new Trainer(pokemon.getOriginalTrainerUUID(), pokemon.getOriginalTrainer()));
-        }
         if(pokemon.isEgg()) {
             result.offer(SpecKeys.EGG_INFO, new EggInfo(pokemon.getEggCycles(), pokemon.getEggSteps()));
         }
