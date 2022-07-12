@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.impactdev.pixelmonbridge.data.DataManager;
 import net.impactdev.pixelmonbridge.data.Reader;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
@@ -17,13 +18,13 @@ import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
+import net.impactdev.pixelmonbridge.details.components.Resource;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTException;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         customReaders.put(SpecKeys.ID, element -> UUID.fromString(element.getAsString()));
         customReaders.put(SpecKeys.SPECIES, JsonElement::getAsString);
         customReaders.put(SpecKeys.SHINY, JsonElement::getAsBoolean);
-        customReaders.put(SpecKeys.FORM, JsonElement::getAsInt);
+        customReaders.put(SpecKeys.FORM, JsonElement::getAsString);
         customReaders.put(SpecKeys.LEVEL, data -> new Level(
                 read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("level"), JsonElement::getAsInt),
                 read(SpecKeys.LEVEL, () -> data.getAsJsonObject().get("experience"), JsonElement::getAsInt),
@@ -56,16 +57,16 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
                 read(SpecKeys.NATURE, () -> data.getAsJsonObject().get("actual"), JsonElement::getAsString),
                 readAndAllowNull(() -> data.getAsJsonObject().get("mint"), JsonElement::getAsString)
         ));
-        customReaders.put(SpecKeys.ABILITY, data -> new Ability(
-                read(SpecKeys.ABILITY, () -> data.getAsJsonObject().get("ability"), JsonElement::getAsString),
-                read(SpecKeys.ABILITY, () -> data.getAsJsonObject().get("slot"), JsonElement::getAsInt)
-        ));
+        customReaders.put(SpecKeys.ABILITY, JsonElement::getAsString);
         customReaders.put(SpecKeys.FRIENDSHIP, JsonElement::getAsInt);
         customReaders.put(SpecKeys.GROWTH, JsonElement::getAsInt);
         customReaders.put(SpecKeys.NICKNAME, JsonElement::getAsString);
-        customReaders.put(SpecKeys.TEXTURE, JsonElement::getAsString);
+        customReaders.put(SpecKeys.TEXTURE, element -> new Resource(
+                read(SpecKeys.TEXTURE, () -> element.getAsJsonObject().get("namespace"), JsonElement::getAsString),
+                read(SpecKeys.TEXTURE, () -> element.getAsJsonObject().get("value"), JsonElement::getAsString)
+        ));
         customReaders.put(SpecKeys.SPECIAL_TEXTURE, JsonElement::getAsInt);
-        customReaders.put(SpecKeys.POKEBALL, JsonElement::getAsInt);
+        customReaders.put(SpecKeys.POKEBALL, JsonElement::getAsString);
         customReaders.put(SpecKeys.TRAINER, data -> new Trainer(
                 read(SpecKeys.TRAINER, () -> data.getAsJsonObject().get("uuid"), x -> UUID.fromString(x.getAsString())),
                 read(SpecKeys.TRAINER, () -> data.getAsJsonObject().get("lastKnownName"), JsonElement::getAsString)
@@ -112,15 +113,15 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         );
         customReaders.put(SpecKeys.RELEARNABLE_MOVES, data -> Lists.newArrayList(data.getAsJsonArray())
                 .stream()
-                .map(JsonElement::getAsInt)
+                .map(JsonElement::getAsString)
                 .collect(Collectors.toList())
         );
         customReaders.put(SpecKeys.EXTRA_DATA, data -> {
             try {
                 return new NBTWrapper(
-                        JsonToNBT.getTagFromJson(read(SpecKeys.EXTRA_DATA, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString))
+                        JsonToNBT.parseTag(read(SpecKeys.EXTRA_DATA, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString))
                 );
-            } catch (NBTException e) {
+            } catch (CommandSyntaxException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -130,9 +131,9 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
                 .map(obj -> {
                     try {
                         return new NBTWrapper(
-                                JsonToNBT.getTagFromJson(obj.getAsString())
+                                JsonToNBT.parseTag(obj.getAsString())
                         );
-                    } catch (NBTException e) {
+                    } catch (CommandSyntaxException e) {
                         throw new RuntimeException(e);
                     }
                 })
@@ -140,9 +141,9 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         );
         customReaders.put(SpecKeys.HELD_ITEM, data -> {
             try {
-                ItemStack item = new ItemStack(JsonToNBT.getTagFromJson(read(SpecKeys.HELD_ITEM, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString)));
+                ItemStack item = ItemStack.of(JsonToNBT.parseTag(read(SpecKeys.HELD_ITEM, () -> data.getAsJsonObject().get("data"), JsonElement::getAsString)));
                 return new ItemStackWrapper(item);
-            } catch (NBTException e) {
+            } catch (CommandSyntaxException e) {
                 throw new RuntimeException(e);
             }
         });
@@ -199,6 +200,18 @@ public abstract class BaseDataManager<P> implements DataManager<P> {
         });
         this.register(SpecKeys.GENERATIONS_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
         this.register(SpecKeys.REFORGED_DATA, data -> new JSONWrapper().deserialize((JsonObject) data));
+
+        this.register(SpecKeys.FORM_LEGACY, JsonElement::getAsInt);
+        this.register(SpecKeys.ABILITY_LEGACY, data -> new Ability(
+                read(SpecKeys.ABILITY, () -> data.getAsJsonObject().get("ability"), JsonElement::getAsString)
+        ));
+        this.register(SpecKeys.POKEBALL_LEGACY, JsonElement::getAsInt);
+        this.register(SpecKeys.TEXTURE_LEGACY, JsonElement::getAsString);
+        this.register(SpecKeys.RELEARNABLE_MOVES_LEGACY, data -> Lists.newArrayList(data.getAsJsonArray())
+                .stream()
+                .map(JsonElement::getAsInt)
+                .collect(Collectors.toList())
+        );
     }
 
     <T> void register(SpecKey<T> key, Reader<T> reader) {

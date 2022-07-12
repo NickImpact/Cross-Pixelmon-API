@@ -11,6 +11,8 @@ public interface ImpactDevPokemon<P> extends Writable<JObject> {
 
     P getOrCreate();
 
+    int version();
+
     <T> boolean supports(SpecKey<T> key);
 
     <T> boolean offer(SpecKey<T> key, T data);

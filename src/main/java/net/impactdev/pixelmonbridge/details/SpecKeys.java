@@ -10,6 +10,7 @@ import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
+import net.impactdev.pixelmonbridge.details.components.Resource;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
@@ -45,11 +46,21 @@ public class SpecKeys {
             .query(Query.of("shiny"))
             .build();
 
-    public static final SpecKey<Integer> FORM = SpecKey.builder()
+    public static final SpecKey<String> FORM = SpecKey.builder()
+            .type(new TypeToken<String>(){})
+            .name("Form")
+            .query(Query.of("form"))
+            .priority(10)
+            .version(2)
+            .build();
+
+    @Deprecated
+    public static final SpecKey<Integer> FORM_LEGACY = SpecKey.builder()
             .type(new TypeToken<Integer>(){})
             .name("Form")
             .query(Query.of("form"))
             .priority(10)
+            .version(1)
             .build();
 
     public static final SpecKey<Level> LEVEL = SpecKey.builder()
@@ -72,10 +83,18 @@ public class SpecKeys {
             .priority(3)
             .build();
 
-    public static final SpecKey<Ability> ABILITY = SpecKey.builder()
+    public static final SpecKey<String> ABILITY = SpecKey.builder()
+            .type(new TypeToken<String>(){})
+            .name("Ability")
+            .query(Query.of("ability"))
+            .version(2)
+            .build();
+    @Deprecated
+    public static final SpecKey<Ability> ABILITY_LEGACY = SpecKey.builder()
             .type(new TypeToken<Ability>(){})
             .name("Ability")
             .query(Query.of("ability"))
+            .version(1)
             .build();
 
     public static final SpecKey<Integer> FRIENDSHIP = SpecKey.builder()
@@ -96,10 +115,19 @@ public class SpecKeys {
             .query(Query.of("nickname"))
             .build();
 
-    public static final SpecKey<String> TEXTURE = SpecKey.builder()
+    public static final SpecKey<Resource> TEXTURE = SpecKey.builder()
+            .type(new TypeToken<Resource>(){})
+            .name("Custom Texture")
+            .query(Query.of("texture"))
+            .version(2)
+            .build();
+
+    @Deprecated
+    public static final SpecKey<String> TEXTURE_LEGACY = SpecKey.builder()
             .type(STRING_TYPE)
             .name("Custom Texture")
             .query(Query.of("texture"))
+            .version(1)
             .build();
 
     /** Generations specific texture key (Reforged removed this) */
@@ -109,10 +137,19 @@ public class SpecKeys {
             .query(Query.of("special-texture"))
             .build();
 
-    public static final SpecKey<Integer> POKEBALL = SpecKey.builder()
+    public static final SpecKey<String> POKEBALL = SpecKey.builder()
+            .type(new TypeToken<String>(){})
+            .name("Pokeball")
+            .query(Query.of("pokeball"))
+            .version(2)
+            .build();
+
+    @Deprecated
+    public static final SpecKey<Integer> POKEBALL_LEGACY = SpecKey.builder()
             .type(INT_TYPE)
             .name("Pokeball")
             .query(Query.of("pokeball"))
+            .version(1)
             .build();
 
     public static final SpecKey<Trainer> TRAINER = SpecKey.builder()
@@ -145,10 +182,19 @@ public class SpecKeys {
             .query(Query.of("spec-flags"))
             .build();
 
-    public static final SpecKey<List<Integer>> RELEARNABLE_MOVES = SpecKey.builder()
+    public static final SpecKey<List<String>> RELEARNABLE_MOVES = SpecKey.builder()
+            .type(new TypeToken<List<String>>(){})
+            .name("Relearnable Moves")
+            .query(Query.of("moves", "relearnable"))
+            .version(2)
+            .build();
+
+    @Deprecated
+    public static final SpecKey<List<Integer>> RELEARNABLE_MOVES_LEGACY = SpecKey.builder()
             .type(new TypeToken<List<Integer>>(){})
             .name("Relearnable Moves")
             .query(Query.of("moves", "relearnable"))
+            .version(1)
             .build();
 
     public static final SpecKey<NBTWrapper> EXTRA_DATA = SpecKey.builder()

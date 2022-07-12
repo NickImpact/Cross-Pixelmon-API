@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public final class SpecKey<T> {
 
@@ -11,17 +12,21 @@ public final class SpecKey<T> {
     public static final TypeToken<String> STRING_TYPE = new TypeToken<String>(){};
     public static final TypeToken<Boolean> BOOLEAN_TYPE = new TypeToken<Boolean>(){};
 
+    private final UUID uuid = UUID.randomUUID();
+
     private final String name;
     private final Query query;
     private final TypeToken<T> type;
 
     private final int priority;
+    private final int version;
 
     public SpecKey(Builder<T> builder) {
         this.name = builder.name;
         this.query = builder.query;
         this.type = new TypeToken<T>(){};
         this.priority = builder.priority;
+        this.version = builder.version;
     }
 
     public String getName() {
@@ -40,6 +45,10 @@ public final class SpecKey<T> {
         return this.priority;
     }
 
+    public int getVersion() {
+        return this.version;
+    }
+
     static <V> Builder<V> builder() {
         return new Builder<>();
     }
@@ -49,6 +58,7 @@ public final class SpecKey<T> {
         private String name;
         private Query query;
         private int priority;
+        private int version;
 
         public <B> Builder<B> type(TypeToken<B> type) {
             return new Builder<>();
@@ -69,6 +79,11 @@ public final class SpecKey<T> {
             return this;
         }
 
+        public Builder<T> version(int version) {
+            this.version = version;
+            return this;
+        }
+
         public SpecKey<T> build() {
             Preconditions.checkNotNull(this.name);
             Preconditions.checkNotNull(this.query);
@@ -83,13 +98,11 @@ public final class SpecKey<T> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SpecKey<?> specKey = (SpecKey<?>) o;
-        return Objects.equals(name, specKey.name) &&
-                Objects.equals(query, specKey.query) &&
-                Objects.equals(type, specKey.type);
+        return priority == specKey.priority && version == specKey.version && uuid.equals(specKey.uuid) && name.equals(specKey.name) && query.equals(specKey.query) && type.equals(specKey.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, query, type);
+        return Objects.hash(uuid, name, query, type, priority, version);
     }
 }

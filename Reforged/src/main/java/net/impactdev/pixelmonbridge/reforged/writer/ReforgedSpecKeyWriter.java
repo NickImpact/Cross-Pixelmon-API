@@ -1,22 +1,28 @@
 package net.impactdev.pixelmonbridge.reforged.writer;
 
 import com.google.common.collect.Maps;
+import com.pixelmonmod.api.registry.RegistryValue;
+import com.pixelmonmod.pixelmon.api.battles.attack.AttackRegistry;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokerusStrain;
+import com.pixelmonmod.pixelmon.api.pokemon.ability.AbilityRegistry;
+import com.pixelmonmod.pixelmon.api.pokemon.item.pokeball.PokeBall;
+import com.pixelmonmod.pixelmon.api.pokemon.item.pokeball.PokeBallRegistry;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
+import com.pixelmonmod.pixelmon.api.pokemon.species.gender.Gender;
+import com.pixelmonmod.pixelmon.api.pokemon.species.palette.PaletteProperties;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.BattleStatsType;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.ExtraStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.LakeTrioStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MeltanStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MewStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MiniorStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.ShearableStats;
+import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.Gender;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MiniorStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStats;
+import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
 import com.pixelmonmod.pixelmon.enums.EnumGrowth;
-import com.pixelmonmod.pixelmon.enums.EnumNature;
-import com.pixelmonmod.pixelmon.enums.EnumPokerusType;
 import com.pixelmonmod.pixelmon.enums.EnumRibbonType;
-import com.pixelmonmod.pixelmon.enums.EnumSpecies;
-import com.pixelmonmod.pixelmon.enums.items.EnumPokeballs;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
@@ -27,35 +33,41 @@ import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
+import net.impactdev.pixelmonbridge.details.components.Resource;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.reforged.ReforgedPokemon;
-import net.minecraft.nbt.NBTTagCompound;
+import net.impactdev.reforged.mixins.api.registry.Registries;
+import net.impactdev.reforged.mixins.api.translations.forms.Destination;
+import net.impactdev.reforged.mixins.api.translations.forms.LegacyFormTranslation;
+import net.impactdev.reforged.mixins.api.translations.forms.LegacyFormTranslator;
+import net.impactdev.reforged.mixins.api.translations.forms.LegacyKey;
+import net.impactdev.reforged.mixins.api.translations.forms.types.PaletteTranslation;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+import static com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies.*;
 
 @SuppressWarnings("unchecked")
 public class ReforgedSpecKeyWriter {
 
     private static Map<SpecKey<?>, BiConsumer<Pokemon, Object>> writers = Maps.newHashMap();
 
-    private static final Map<String, EnumSpecies> speciesMap = Maps.newHashMap();
-
     static {
-        for(EnumSpecies species : EnumSpecies.values()) {
-            speciesMap.put(species.name, species);
-        }
-
         writers.put(SpecKeys.ID, (p, v) -> p.setUUID((UUID) v));
-        writers.put(SpecKeys.SPECIES, (p, v) -> p.setSpecies(speciesMap.get((String) v)));
+        writers.put(SpecKeys.SPECIES, (p, v) -> p.setSpecies(PixelmonSpecies.get((String) v).orElseThrow(IllegalArgumentException::new), false));
         writers.put(SpecKeys.SHINY, (p, v) -> p.setShiny((boolean) v));
-        writers.put(SpecKeys.FORM, (p, v) -> p.setForm((int) v));
+        writers.put(SpecKeys.FORM, (p, v) -> p.setForm((String) v));
         writers.put(SpecKeys.LEVEL, (p, v) -> {
             Level level = (Level) v;
             p.setLevel(level.getLevel());
@@ -71,14 +83,14 @@ public class ReforgedSpecKeyWriter {
         });
         writers.put(SpecKeys.NATURE, (p, v) -> {
             Nature nature = (Nature) v;
-            EnumNature actual = EnumNature.natureFromString(nature.getActual());
+            com.pixelmonmod.pixelmon.api.pokemon.Nature actual = com.pixelmonmod.pixelmon.api.pokemon.Nature.natureFromString(nature.getActual());
             if(actual == null) {
                 throw new IllegalArgumentException("Invalid nature");
             }
 
             p.setNature(actual);
             if(nature.getMint() != null) {
-                EnumNature mint = EnumNature.natureFromString(nature.getMint());
+                com.pixelmonmod.pixelmon.api.pokemon.Nature mint = com.pixelmonmod.pixelmon.api.pokemon.Nature.natureFromString(nature.getMint());
                 if(mint == null) {
                     throw new IllegalArgumentException("Invalid mint nature");
                 }
@@ -87,9 +99,7 @@ public class ReforgedSpecKeyWriter {
             }
         });
         writers.put(SpecKeys.ABILITY, (p, v) -> {
-            Ability ability = (Ability) v;
-            p.setAbility(ability.getAbility());
-            p.setAbilitySlot(ability.getSlot());
+            p.setAbility(AbilityRegistry.getAbility((String) v));
         });
         writers.put(SpecKeys.FRIENDSHIP, (p, v) -> {
             p.setFriendship((int) v);
@@ -103,14 +113,14 @@ public class ReforgedSpecKeyWriter {
             p.setGrowth(EnumGrowth.getGrowthFromIndex(ordinal));
         });
         writers.put(SpecKeys.NICKNAME, (p, v) -> p.setNickname((String) v));
-        writers.put(SpecKeys.TEXTURE, (p, v) -> p.setCustomTexture((String) v));
+        writers.put(SpecKeys.TEXTURE, (p, v) -> p.getPalette().setTexture(new ResourceLocation(((Resource) v).formatted())));
         writers.put(SpecKeys.POKEBALL, (p, v) -> {
-            int ordinal = (int) v;
-            if(EnumPokeballs.values().length <= ordinal || ordinal < 0) {
+            Optional<PokeBall> ball = PokeBallRegistry.getPokeBall((String) v);
+            if(!ball.isPresent()) {
                 throw new IllegalArgumentException("Invalid pokeball index");
             }
 
-            p.setCaughtBall(EnumPokeballs.getFromIndex(ordinal));
+            p.setBall(ball.get());
         });
         writers.put(SpecKeys.TRAINER, (p, v) -> {
             Trainer trainer = (Trainer) v;
@@ -125,7 +135,7 @@ public class ReforgedSpecKeyWriter {
             Pokerus pokerus = (Pokerus) v;
             int type = pokerus.getSource() == PixelmonSource.Reforged ? pokerus.getType() : 0;
 
-            com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[type]);
+            com.pixelmonmod.pixelmon.api.pokemon.stats.Pokerus actual = new com.pixelmonmod.pixelmon.api.pokemon.stats.Pokerus(PokerusStrain.values()[type]);
             actual.secondsSinceInfection = pokerus.getSecondsSinceInfection();
             actual.announced = pokerus.isAnnounced();
             p.setPokerus(actual);
@@ -147,13 +157,13 @@ public class ReforgedSpecKeyWriter {
         writers.put(SpecKeys.SPEC_CREATION_FLAGS, (p, v) -> {
             List<String> flags = (List<String>) v;
             for(String f : flags) {
-                p.addSpecFlag(f);
+                p.addFlag(f);
             }
         });
         writers.put(SpecKeys.RELEARNABLE_MOVES, (p, v) -> {
-            List<Integer> ids = (List<Integer>) v;
-            for(int id : ids) {
-                p.getRelearnableMoves().add(id);
+            List<String> ids = (List<String>) v;
+            for(String id : ids) {
+                AttackRegistry.getAttackBase(id).ifPresent(a -> p.getRelearnableMoves().add(a));
             }
         });
         writers.put(SpecKeys.EXTRA_DATA, (p, v) -> {
@@ -167,7 +177,7 @@ public class ReforgedSpecKeyWriter {
         });
 
         writers.put(SpecKeys.EMBEDDED_POKEMON, (p, v) -> {
-            p.getPersistentData().setTag("FusedPokemon", ((List<ReforgedPokemon>) v).get(0).getOrCreate().writeToNBT(new NBTTagCompound()));
+            p.getPersistentData().put("FusedPokemon", ((List<ReforgedPokemon>) v).get(0).getOrCreate().writeToNBT(new CompoundNBT()));
         });
 
         writers.put(SpecKeys.HELD_ITEM, (p, v) -> {
@@ -175,69 +185,69 @@ public class ReforgedSpecKeyWriter {
             p.setHeldItem(wrapper.getItem());
         });
         writers.put(SpecKeys.MEW_CLONES, (p, v) -> {
-            if(p.getSpecies() != EnumSpecies.Mew) {
+            if(!p.getSpecies().is(MEW)) {
                 throw new IllegalStateException("Pokemon must be a Mew for this data");
             }
 
             ((MewStats) p.getExtraStats()).numCloned = (int) v;
         });
         writers.put(SpecKeys.LAKE_TRIO_ENCHANTS, (p, v) -> {
-            if(p.getSpecies() != EnumSpecies.Azelf && p.getSpecies() != EnumSpecies.Uxie && p.getSpecies() != EnumSpecies.Mesprit) {
+            if(!p.getSpecies().is(AZELF, MESPRIT, UXIE)) {
                 throw new IllegalStateException("Pokemon must be a lake trio member for this data");
             }
 
             ((LakeTrioStats) p.getExtraStats()).numEnchanted = (int) v;
         });
         writers.put(SpecKeys.MELTAN_ORES_SMELTED, (p, v) -> {
-            if(p.getSpecies() != EnumSpecies.Meltan) {
+            if(!p.getSpecies().is(MELTAN)) {
                 throw new IllegalStateException("Pokemon must be a Meltan for this data");
             }
 
             ((MeltanStats) p.getExtraStats()).oresSmelted = (int) v;
         });
         writers.put(SpecKeys.MAREEP_WOOL_GROWTH, (p, v) -> {
-            if(p.getSpecies() != EnumSpecies.Mareep) {
+            if(!p.getSpecies().is(MAREEP)) {
                 throw new IllegalStateException("Pokemon must be a Mareep for this data");
             }
 
             ((ShearableStats) p.getExtraStats()).growthStage = (byte) v;
         });
         writers.put(SpecKeys.MINIOR_COLOR, (p, v) -> {
-            if(p.getSpecies() != EnumSpecies.Minior) {
+            if(!p.getSpecies().is(MINIOR)) {
                 throw new IllegalStateException("Pokemon must be a Minior for this data");
             }
 
             ((MiniorStats) p.getExtraStats()).color = (byte) v;
         });
         writers.put(SpecKeys.HP, (p, v) -> p.setHealth((int) v));
-        writers.put(SpecKeys.EV_HP, (p, v) -> p.getStats().evs.setStat(StatsType.HP, (int) v));
-        writers.put(SpecKeys.EV_ATK, (p, v) -> p.getStats().evs.setStat(StatsType.Attack, (int) v));
-        writers.put(SpecKeys.EV_DEF, (p, v) -> p.getStats().evs.setStat(StatsType.Defence, (int) v));
-        writers.put(SpecKeys.EV_SPATK, (p, v) -> p.getStats().evs.setStat(StatsType.SpecialAttack, (int) v));
-        writers.put(SpecKeys.EV_SPDEF, (p, v) -> p.getStats().evs.setStat(StatsType.SpecialDefence, (int) v));
-        writers.put(SpecKeys.EV_SPEED, (p, v) -> p.getStats().evs.setStat(StatsType.Speed, (int) v));
-        writers.put(SpecKeys.IV_HP, (p, v) -> p.getStats().ivs.setStat(StatsType.HP, (int) v));
-        writers.put(SpecKeys.IV_ATK, (p, v) -> p.getStats().ivs.setStat(StatsType.Attack, (int) v));
-        writers.put(SpecKeys.IV_DEF, (p, v) -> p.getStats().ivs.setStat(StatsType.Defence, (int) v));
-        writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().ivs.setStat(StatsType.SpecialAttack, (int) v));
-        writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().ivs.setStat(StatsType.SpecialDefence, (int) v));
-        writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().ivs.setStat(StatsType.Speed, (int) v));
-        writers.put(SpecKeys.HYPER_HP, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.HP, (boolean) v));
-        writers.put(SpecKeys.HYPER_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Attack, (boolean) v));
-        writers.put(SpecKeys.HYPER_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Defence, (boolean) v));
-        writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialAttack, (boolean) v));
-        writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.SpecialDefence, (boolean) v));
-        writers.put(SpecKeys.HYPER_SPEED, (p, v) -> p.getStats().ivs.setHyperTrained(StatsType.Speed, (boolean) v));
+        writers.put(SpecKeys.EV_HP, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.HP, (int) v));
+        writers.put(SpecKeys.EV_ATK, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.ATTACK, (int) v));
+        writers.put(SpecKeys.EV_DEF, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.DEFENSE, (int) v));
+        writers.put(SpecKeys.EV_SPATK, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.SPECIAL_ATTACK, (int) v));
+        writers.put(SpecKeys.EV_SPDEF, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.SPECIAL_DEFENSE, (int) v));
+        writers.put(SpecKeys.EV_SPEED, (p, v) -> p.getStats().getEVs().setStat(BattleStatsType.SPEED, (int) v));
+        writers.put(SpecKeys.IV_HP, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.HP, (int) v));
+        writers.put(SpecKeys.IV_ATK, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.ATTACK, (int) v));
+        writers.put(SpecKeys.IV_DEF, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.DEFENSE, (int) v));
+        writers.put(SpecKeys.IV_SPATK, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.SPECIAL_ATTACK, (int) v));
+        writers.put(SpecKeys.IV_SPDEF, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.SPECIAL_DEFENSE, (int) v));
+        writers.put(SpecKeys.IV_SPEED, (p, v) -> p.getStats().getIVs().setStat(BattleStatsType.SPEED, (int) v));
+        writers.put(SpecKeys.HYPER_HP, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.HP, (boolean) v));
+        writers.put(SpecKeys.HYPER_ATTACK, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.ATTACK, (boolean) v));
+        writers.put(SpecKeys.HYPER_DEFENCE, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.DEFENSE, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPECIAL_ATTACK, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.SPECIAL_ATTACK, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPECIAL_DEFENCE, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.SPECIAL_DEFENSE, (boolean) v));
+        writers.put(SpecKeys.HYPER_SPEED, (p, v) -> p.getStats().getIVs().setHyperTrained(BattleStatsType.SPEED, (boolean) v));
         writers.put(SpecKeys.MARKS, (p, v) -> {
             List<Marking> markings = (List<Marking>) v;
             for(Marking marking : markings) {
-                p.getRibbons().add(EnumRibbonType.values()[marking.getMark().getIndexes().get(PixelmonSource.Reforged)]);
+                p.addRibbon(EnumRibbonType.values()[marking.getMark().getIndexes().get(PixelmonSource.Reforged)]);
             }
         });
         writers.put(SpecKeys.RIBBONS, (p, v) -> {
             List<Integer> ribbons = (List<Integer>) v;
             for(int ribbon : ribbons) {
-                p.getRibbons().add(EnumRibbonType.values()[ribbon]);
+                p.addRibbon(EnumRibbonType.values()[ribbon]);
             }
         });
         writers.put(SpecKeys.CAN_GMAX, (p, v) -> p.setGigantamaxFactor((boolean) v));
@@ -250,13 +260,13 @@ public class ReforgedSpecKeyWriter {
 
             JSONWrapper wrapper = (JSONWrapper) v;
 
-            NBTTagCompound root = new NBTTagCompound();
-            NBTTagCompound parent = new NBTTagCompound();
+            CompoundNBT root = new CompoundNBT();
+            CompoundNBT parent = new CompoundNBT();
             p.writeToNBT(root);
 
-            NBTTagCompound forge = root.getCompoundTag("ForgeData");
-            forge.setTag("bridge-api", parent);
-            parent.setString("generations", wrapper.serialize().toJson().toString());
+            CompoundNBT forge = root.getCompound("ForgeData");
+            forge.put("bridge-api", parent);
+            parent.putString("generations", wrapper.serialize().toJson().toString());
 
             p.readFromNBT(root);
         });
@@ -264,7 +274,7 @@ public class ReforgedSpecKeyWriter {
             JSONWrapper wrapper = (JSONWrapper) v;
 
             wrapper.get(SpecKeys.POKERUS).ifPresent(data -> {
-                p.setPokerus(new com.pixelmonmod.pixelmon.entities.pixelmon.stats.Pokerus(EnumPokerusType.values()[data.getType()]));
+                p.setPokerus(new com.pixelmonmod.pixelmon.api.pokemon.stats.Pokerus(PokerusStrain.values()[data.getType()]));
                 p.getPokerus().announced = data.isAnnounced();
                 p.getPokerus().secondsSinceInfection = data.getSecondsSinceInfection();
             });
@@ -283,6 +293,49 @@ public class ReforgedSpecKeyWriter {
                 stats.oresSmelted = data;
                 apply(p, stats);
             });
+        });
+
+        writers.put(SpecKeys.FORM_LEGACY, (p, v) -> {
+            LegacyFormTranslator translator = Registries.LEGACY_FORMS.get();
+            RegistryValue<Species> species = p.getSpecies().getRegistryValue();
+            int form = Math.max(0, (int) v);
+
+            LegacyKey a = LegacyKey.of(form, species);
+            if(translator.translations().containsKey(a)) {
+                LegacyFormTranslation translation = translator.translations().get(a);
+                if(translation.destination() == Destination.FORM) {
+                    p.setForm(translation.name());
+                } else {
+                    PaletteTranslation x = (PaletteTranslation) translation;
+                    p.setForm(x.name());
+                    p.setPalette(translation.name());
+                }
+            } else {
+                LegacyKey b = LegacyKey.of(form);
+                if(translator.translations().containsKey(b)) {
+                    LegacyFormTranslation translation = translator.translations().get(b);
+                    if(translation.destination() == Destination.FORM) {
+                        p.setForm(translation.name());
+                    } else {
+                        PaletteTranslation x = (PaletteTranslation) translation;
+                        p.setForm(x.name());
+                        p.setPalette(translation.name());
+                    }
+                } else {
+                    p.setForm(species.getValueUnsafe().getDefaultForm());
+                }
+
+            }
+        });
+        writers.put(SpecKeys.ABILITY_LEGACY, (p, v) -> p.setAbility(AbilityRegistry.getAbility(((Ability) v).getAbility())));
+        writers.put(SpecKeys.POKEBALL_LEGACY, (p, v) -> p.setBall(PokeBallRegistry.getAll().get((int) v)));
+        writers.put(SpecKeys.TEXTURE_LEGACY, (p, v) -> p.setPalette((String) v));
+        writers.put(SpecKeys.RELEARNABLE_MOVES_LEGACY, (p, v) -> {
+            List<ImmutableAttack> ids = ((List<Integer>) v).stream()
+                    .map(id -> AttackRegistry.getAllAttacks().get(id))
+                    .collect(Collectors.toList());
+            p.getRelearnableMoves().addAll(ids);
+
         });
     }
 

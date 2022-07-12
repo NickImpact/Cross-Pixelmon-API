@@ -2,21 +2,21 @@ package net.impactdev.pixelmonbridge.details.components.generic;
 
 import net.impactdev.pixelmonbridge.data.Writable;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 
 public class NBTWrapper implements Writable<JObject> {
 
-    private NBTTagCompound nbt;
+    private CompoundNBT nbt;
 
     public NBTWrapper() {
-        this.nbt = new NBTTagCompound();
+        this.nbt = new CompoundNBT();
     }
 
-    public NBTWrapper(NBTTagCompound nbt) {
+    public NBTWrapper(CompoundNBT nbt) {
         this.nbt = nbt;
     }
 
-    public NBTTagCompound getNBT() {
+    public CompoundNBT getNBT() {
         return nbt;
     }
 

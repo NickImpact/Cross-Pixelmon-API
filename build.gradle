@@ -1,30 +1,28 @@
 buildscript {
     repositories {
-        jcenter()
         maven {
             name = "forge"
-            url = "http://files.minecraftforge.net/maven"
+            url = "https://files.minecraftforge.net/maven"
         }
         maven {
             name = "Maven Auth"
-            url "http://repository.jboss.org/nexus/content/groups/public/"
+            url "https://repository.jboss.org/nexus/content/groups/public/"
         }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
         classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
     }
 }
 
 plugins {
     id 'java'
-    id 'maven'
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 
 group 'net.impactdev'
-version '1.0.3-SNAPSHOT'
+version '1.1.1-SNAPSHOT'
 
 subprojects {
     group 'net.impactdev.pixelmonbridge'
@@ -32,13 +30,12 @@ subprojects {
 
 allprojects {
     apply plugin: 'java'
-    apply plugin: 'maven'
     apply plugin: 'net.minecraftforge.gradle'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
-    version '1.0.3-SNAPSHOT'
+    version '1.1.1-SNAPSHOT'
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
@@ -50,7 +47,7 @@ allprojects {
         // stable_#            Stables are built at the discretion of the MCP team.
         // Use non-default mappings at your own risk. they may not always work.
         // Simply re-run your setup task after changing the mappings to update your workspace.
-        mappings channel: "stable", version: "39-1.12"
+        mappings channel: 'official', version: '1.16.5'
     }
 
     repositories {
@@ -58,10 +55,10 @@ allprojects {
     }
 
     dependencies {
-        compileOnly 'com.google.code.gson:gson:2.8.0'
-        minecraft "net.minecraftforge:forge:1.12.2-14.23.5.2855"
+        minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
 
-        testCompile group: 'junit', name: 'junit', version: '4.12'
+        compileOnly 'com.google.code.gson:gson:2.8.0'
+        testImplementation group: 'junit', name: 'junit', version: '4.12'
     }
 
     processResources {
@@ -79,6 +76,30 @@ allprojects {
         // copy everything else, thats not the mcmod.info
         from(sourceSets.main.resources.srcDirs) {
             exclude 'mcmod.info'
+        }
+    }
+}
+
+apply plugin: 'maven-publish'
+
+publishing {
+    repositories {
+        maven {
+            name = "ImpactDev-Public"
+            url = "https://maven.impactdev.net/repository/development/"
+            credentials {
+                username System.getenv('NEXUS_USER')
+                password System.getenv('NEXUS_PW')
+            }
+        }
+    }
+
+    publications {
+        common(MavenPublication) {
+            from project.components.java
+            groupId project.group
+            artifactId "pixelmonbridge"
+            version project.version
         }
     }
 }

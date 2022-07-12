@@ -5,40 +5,47 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.pixelmonmod.api.registry.RegistryValue;
 import com.pixelmonmod.pixelmon.Pixelmon;
-import com.pixelmonmod.pixelmon.api.pokemon.EnumInitializeCategory;
+import com.pixelmonmod.pixelmon.api.pokemon.InitializeCategory;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
+import com.pixelmonmod.pixelmon.api.pokemon.PokemonFactory;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
+import com.pixelmonmod.pixelmon.api.pokemon.species.Stats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.BattleStatsType;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.ExtraStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.LakeTrioStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MeltanStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MewStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.MiniorStats;
+import com.pixelmonmod.pixelmon.api.pokemon.stats.extraStats.ShearableStats;
+import com.pixelmonmod.pixelmon.api.registries.PixelmonForms;
+import com.pixelmonmod.pixelmon.api.registries.PixelmonRegistries;
+import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
+import com.pixelmonmod.pixelmon.api.util.helpers.SpeciesHelper;
 import com.pixelmonmod.pixelmon.battles.attacks.Attack;
+import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
 import com.pixelmonmod.pixelmon.battles.status.NoStatus;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.ExtraStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.StatsType;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.LakeTrioStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MeltanStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MewStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.MiniorStats;
-import com.pixelmonmod.pixelmon.entities.pixelmon.stats.extraStats.ShearableStats;
 import com.pixelmonmod.pixelmon.enums.EnumRibbonType;
-import com.pixelmonmod.pixelmon.enums.EnumSpecies;
 import net.impactdev.pixelmonbridge.ImpactDevPokemon;
 import net.impactdev.pixelmonbridge.data.factory.JObject;
 import net.impactdev.pixelmonbridge.details.PixelmonSource;
 import net.impactdev.pixelmonbridge.details.Query;
 import net.impactdev.pixelmonbridge.details.SpecKey;
 import net.impactdev.pixelmonbridge.details.SpecKeys;
-import net.impactdev.pixelmonbridge.details.components.Ability;
 import net.impactdev.pixelmonbridge.details.components.EggInfo;
 import net.impactdev.pixelmonbridge.details.components.Level;
 import net.impactdev.pixelmonbridge.details.components.Marking;
 import net.impactdev.pixelmonbridge.details.components.Moves;
 import net.impactdev.pixelmonbridge.details.components.Nature;
 import net.impactdev.pixelmonbridge.details.components.Pokerus;
+import net.impactdev.pixelmonbridge.details.components.Resource;
 import net.impactdev.pixelmonbridge.details.components.Trainer;
 import net.impactdev.pixelmonbridge.details.components.generic.ItemStackWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 import net.impactdev.pixelmonbridge.details.components.generic.NBTWrapper;
 import net.impactdev.pixelmonbridge.reforged.writer.ReforgedSpecKeyWriter;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraft.nbt.CompoundNBT;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -76,8 +83,16 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
 
     @Override
     public Pokemon getOrCreate() {
-        EnumSpecies species = this.get(SpecKeys.SPECIES).flatMap(EnumSpecies::getFromName).orElseThrow(() -> new RuntimeException("Unknown species..."));
-        return this.pokemon == null ? this.pokemon = writeAll(Pixelmon.pokemonFactory.create(species)) : this.pokemon;
+        Species species = this.get(SpecKeys.SPECIES)
+                .map(PixelmonSpecies::fromName)
+                .flatMap(RegistryValue::getValue)
+                .orElseThrow(() -> new RuntimeException("Unknown species..."));
+        return this.pokemon == null ? this.pokemon = writeAll(PokemonFactory.create(species)) : this.pokemon;
+    }
+
+    @Override
+    public int version() {
+        return 2;
     }
 
     @Override
@@ -92,7 +107,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         }
 
         if(SpecKeys.SPECIES.equals(key)) {
-            if(!EnumSpecies.getFromName((String) data).isPresent()) {
+            if(!PixelmonSpecies.has((String) data)) {
                 return false;
             }
         }
@@ -119,21 +134,21 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
     public static ReforgedPokemon from(Pokemon pokemon) {
         ReforgedPokemon result = new ReforgedPokemon();
         result.offer(SpecKeys.ID, pokemon.getUUID());
-        result.offer(SpecKeys.SPECIES, pokemon.getSpecies().name);
-        result.offer(SpecKeys.FORM, pokemon.getForm());
+        result.offer(SpecKeys.SPECIES, pokemon.getSpecies().getName());
+        result.offer(SpecKeys.FORM, pokemon.getForm().getName());
         result.offer(SpecKeys.SHINY, pokemon.isShiny());
-        result.offer(SpecKeys.LEVEL, new Level(pokemon.getLevel(), pokemon.getExperience(), pokemon.doesLevel()));
+        result.offer(SpecKeys.LEVEL, new Level(pokemon.getPokemonLevel(), pokemon.getExperience(), pokemon.doesLevel()));
         result.offer(SpecKeys.GENDER, pokemon.getGender().ordinal());
         result.offer(SpecKeys.NATURE, new Nature(pokemon.getBaseNature().name(), Optional.ofNullable(pokemon.getMintNature()).map(Enum::name).orElse(null)));
-        result.offer(SpecKeys.ABILITY, new Ability(pokemon.getAbilityName(), pokemon.getAbilitySlot()));
+        result.offer(SpecKeys.ABILITY, pokemon.getAbilityName());
         result.offer(SpecKeys.FRIENDSHIP, pokemon.getFriendship());
         result.offer(SpecKeys.GROWTH, pokemon.getGrowth().index);
         result.offer(SpecKeys.NICKNAME, pokemon.getNickname());
-        result.offer(SpecKeys.TEXTURE, pokemon.getCustomTexture());
+        result.offer(SpecKeys.TEXTURE, new Resource(pokemon.getPalette().getTexture().toString()));
 
-        Optional.ofNullable(pokemon.getCaughtBall())
+        Optional.ofNullable(pokemon.getBall())
                 .ifPresent(ball -> {
-                    result.offer(SpecKeys.POKEBALL, ball.ordinal());
+                    result.offer(SpecKeys.POKEBALL, ball.getName());
                 });
 
         // If a pokemon doesn't have an original trainer UUID, they shouldn't have an original trainer last known
@@ -169,7 +184,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.MOVESET, moves);
 
         try {
-            Field flags = Pokemon.class.getDeclaredField("specFlags");
+            Field flags = Pokemon.class.getDeclaredField("flags");
             flags.setAccessible(true);
             @SuppressWarnings("unchecked") List<String> f = ((ArrayList<String>)flags.get(pokemon));
             result.offer(SpecKeys.SPEC_CREATION_FLAGS, f);
@@ -177,47 +192,47 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
             e.printStackTrace();
         }
 
-        result.offer(SpecKeys.RELEARNABLE_MOVES, pokemon.getRelearnableMoves());
+        result.offer(SpecKeys.RELEARNABLE_MOVES, pokemon.getRelearnableMoves().stream().map(ImmutableAttack::getAttackName).collect(Collectors.toList()));
         result.offer(SpecKeys.EXTRA_DATA, result.extraData(pokemon));
         result.offer(SpecKeys.HELD_ITEM, new ItemStackWrapper(pokemon.getHeldItem()));
         if(!pokemon.getStatus().equals(NoStatus.noStatus)) {
             result.offer(SpecKeys.STATUS, pokemon.getStatus().type.ordinal());
         }
 
-        if(pokemon.getSpecies() == EnumSpecies.Mew) {
+        if(pokemon.getSpecies().is(PixelmonSpecies.MEW)) {
             result.offer(SpecKeys.MEW_CLONES, convert(MewStats.class, pokemon.getExtraStats()).numCloned);
-        } else if(pokemon.getSpecies() == EnumSpecies.Azelf || pokemon.getSpecies() == EnumSpecies.Mesprit || pokemon.getSpecies() == EnumSpecies.Uxie) {
+        } else if(pokemon.getSpecies().is(PixelmonSpecies.AZELF, PixelmonSpecies.MESPRIT, PixelmonSpecies.UXIE)) {
             result.offer(SpecKeys.LAKE_TRIO_ENCHANTS, convert(LakeTrioStats.class, pokemon.getExtraStats()).numEnchanted);
-        } else if(pokemon.getSpecies() == EnumSpecies.Meltan) {
+        } else if(pokemon.getSpecies().is(PixelmonSpecies.MELTAN)) {
             result.offer(SpecKeys.MELTAN_ORES_SMELTED, convert(MeltanStats.class, pokemon.getExtraStats()).oresSmelted);
-        } else if(pokemon.getSpecies() == EnumSpecies.Mareep) {
+        } else if(pokemon.getSpecies().is(PixelmonSpecies.MAREEP)) {
             result.offer(SpecKeys.MAREEP_WOOL_GROWTH, convert(ShearableStats.class, pokemon.getExtraStats()).growthStage);
-        } else if(pokemon.getSpecies() == EnumSpecies.Minior) {
+        } else if(pokemon.getSpecies().is(PixelmonSpecies.MINIOR)) {
             result.offer(SpecKeys.MINIOR_COLOR, convert(MiniorStats.class, pokemon.getExtraStats()).color);
         }
 
         result.offer(SpecKeys.HP, pokemon.getHealth());
-        result.offer(SpecKeys.EV_HP, pokemon.getStats().evs.getStat(StatsType.HP));
-        result.offer(SpecKeys.EV_ATK, pokemon.getStats().evs.getStat(StatsType.Attack));
-        result.offer(SpecKeys.EV_DEF, pokemon.getStats().evs.getStat(StatsType.Defence));
-        result.offer(SpecKeys.EV_SPATK, pokemon.getStats().evs.getStat(StatsType.SpecialAttack));
-        result.offer(SpecKeys.EV_SPDEF, pokemon.getStats().evs.getStat(StatsType.SpecialDefence));
-        result.offer(SpecKeys.EV_SPEED, pokemon.getStats().evs.getStat(StatsType.Speed));
-        result.offer(SpecKeys.IV_HP, pokemon.getStats().ivs.getStat(StatsType.HP));
-        result.offer(SpecKeys.IV_ATK, pokemon.getStats().ivs.getStat(StatsType.Attack));
-        result.offer(SpecKeys.IV_DEF, pokemon.getStats().ivs.getStat(StatsType.Defence));
-        result.offer(SpecKeys.IV_SPATK, pokemon.getStats().ivs.getStat(StatsType.SpecialAttack));
-        result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().ivs.getStat(StatsType.SpecialDefence));
-        result.offer(SpecKeys.IV_SPEED, pokemon.getStats().ivs.getStat(StatsType.Speed));
-        result.offer(SpecKeys.HYPER_HP, pokemon.getStats().ivs.isHyperTrained(StatsType.HP));
-        result.offer(SpecKeys.HYPER_ATTACK, pokemon.getStats().ivs.isHyperTrained(StatsType.Attack));
-        result.offer(SpecKeys.HYPER_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.Defence));
-        result.offer(SpecKeys.HYPER_SPECIAL_ATTACK, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialAttack));
-        result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.getStats().ivs.isHyperTrained(StatsType.SpecialDefence));
-        result.offer(SpecKeys.HYPER_SPEED, pokemon.getStats().ivs.isHyperTrained(StatsType.Speed));
+        result.offer(SpecKeys.EV_HP, pokemon.getStats().getEVs().getStat(BattleStatsType.HP));
+        result.offer(SpecKeys.EV_ATK, pokemon.getStats().getEVs().getStat(BattleStatsType.ATTACK));
+        result.offer(SpecKeys.EV_DEF, pokemon.getStats().getEVs().getStat(BattleStatsType.DEFENSE));
+        result.offer(SpecKeys.EV_SPATK, pokemon.getStats().getEVs().getStat(BattleStatsType.SPECIAL_ATTACK));
+        result.offer(SpecKeys.EV_SPDEF, pokemon.getStats().getEVs().getStat(BattleStatsType.SPECIAL_DEFENSE));
+        result.offer(SpecKeys.EV_SPEED, pokemon.getStats().getEVs().getStat(BattleStatsType.SPEED));
+        result.offer(SpecKeys.IV_HP, pokemon.getStats().getIVs().getStat(BattleStatsType.HP));
+        result.offer(SpecKeys.IV_ATK, pokemon.getStats().getIVs().getStat(BattleStatsType.ATTACK));
+        result.offer(SpecKeys.IV_DEF, pokemon.getStats().getIVs().getStat(BattleStatsType.DEFENSE));
+        result.offer(SpecKeys.IV_SPATK, pokemon.getStats().getIVs().getStat(BattleStatsType.SPECIAL_ATTACK));
+        result.offer(SpecKeys.IV_SPDEF, pokemon.getStats().getIVs().getStat(BattleStatsType.SPECIAL_DEFENSE));
+        result.offer(SpecKeys.IV_SPEED, pokemon.getStats().getIVs().getStat(BattleStatsType.SPEED));
+        result.offer(SpecKeys.HYPER_HP, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.HP));
+        result.offer(SpecKeys.HYPER_ATTACK, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.ATTACK));
+        result.offer(SpecKeys.HYPER_DEFENCE, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.DEFENSE));
+        result.offer(SpecKeys.HYPER_SPECIAL_ATTACK, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.SPECIAL_ATTACK));
+        result.offer(SpecKeys.HYPER_SPECIAL_DEFENCE, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.SPECIAL_DEFENSE));
+        result.offer(SpecKeys.HYPER_SPEED, pokemon.getStats().getIVs().isHyperTrained(BattleStatsType.SPEED));
         result.offer(SpecKeys.DYNAMAX_LEVEL, pokemon.getDynamaxLevel());
         result.offer(SpecKeys.CAN_GMAX, pokemon.canGigantamax());
-        if(pokemon.getPersistentData().hasKey("FusedPokemon")) {
+        if(pokemon.getPersistentData().contains("FusedPokemon")) {
             result.offer(SpecKeys.EMBEDDED_POKEMON, Lists.newArrayList(result.getEmbeddedPokemon(pokemon)));
         }
 
@@ -234,13 +249,13 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
         result.offer(SpecKeys.MARKS, marks);
         result.offer(SpecKeys.RIBBONS, ribbons);
 
-        NBTTagCompound nbt = new NBTTagCompound();
+        CompoundNBT nbt = new CompoundNBT();
         pokemon.writeToNBT(nbt);
-        nbt = nbt.getCompoundTag("ForgeData");
+        nbt = nbt.getCompound("ForgeData");
 
-        if(nbt.hasKey("bridge-api")) {
-            NBTTagCompound data = nbt.getCompoundTag("bridge-api");
-            if(data.hasKey("generations")) {
+        if(nbt.contains("bridge-api")) {
+            CompoundNBT data = nbt.getCompound("bridge-api");
+            if(data.contains("generations")) {
                 JSONWrapper wrapper = new JSONWrapper();
                 String stored = data.getString("generations");
                 JsonObject json = new GsonBuilder().create().fromJson(stored, JsonObject.class);
@@ -264,7 +279,7 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
             Object value = entry.getValue();
 
             if(key.getPriority() <= 0 && !initialized) {
-                pokemon.initialize(EnumInitializeCategory.SPECIES);
+                pokemon.initialize(InitializeCategory.SPECIES);
                 initialized = true;
             }
 
@@ -295,14 +310,14 @@ public class ReforgedPokemon implements ImpactDevPokemon<Pokemon> {
     }
 
     private NBTWrapper extraData(Pokemon pokemon) {
-        NBTTagCompound nbt = pokemon.getPersistentData().copy();
-        nbt.removeTag("FusedPokemon");
+        CompoundNBT nbt = pokemon.getPersistentData().copy();
+        nbt.remove("FusedPokemon");
         return new NBTWrapper(nbt);
     }
 
     private ReforgedPokemon getEmbeddedPokemon(Pokemon pokemon) {
-        NBTTagCompound nbt = pokemon.getPersistentData().getCompoundTag("FusedPokemon");
-        return ReforgedPokemon.from(Pixelmon.pokemonFactory.create(nbt));
+        CompoundNBT nbt = pokemon.getPersistentData().getCompound("FusedPokemon");
+        return ReforgedPokemon.from(PokemonFactory.create(nbt));
     }
 
     @Override

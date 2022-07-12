@@ -14,8 +14,10 @@ import net.impactdev.pixelmonbridge.details.components.generic.JSONWrapper;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
 
@@ -40,6 +42,7 @@ public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
         UUID key = UUID.randomUUID();
         ContextualRegistry.register(key);
 
+        out.add("version", pokemon.version());
         for(Map.Entry<SpecKey<?>, Object> data : pokemon.getAllDetails().entrySet()) {
             Query query = data.getKey().getQuery();
             Object value = data.getValue();
@@ -59,9 +62,18 @@ public class ReforgedDataManager extends BaseDataManager<ReforgedPokemon> {
             throw new IllegalStateException("JSON data is lacking pokemon species");
         }
 
+        List<SpecKey<?>> keys = SpecKeys.getKeys().stream()
+                .filter(key -> {
+                    if(key.getVersion() != 0) {
+                        return key.getVersion() == Optional.ofNullable(json.get("version")).map(JsonElement::getAsInt).orElse(1);
+                    }
+
+                    return true;
+                })
+                .collect(Collectors.toList());
         List<String> queries = this.track(json);
 
-        for(SpecKey<?> key : SpecKeys.getKeys()) {
+        for(SpecKey<?> key : keys) {
             result.offerUnsafe(key, this.translate(json, key));
             queries.removeIf(s -> s.startsWith(key.getQuery().toString()));
         }
